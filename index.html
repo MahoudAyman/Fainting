@@ -641,431 +641,430 @@
     <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-storage-compat.js"></script>
      <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-analytics-compat.js"></script>
 
+<script>
+    console.log("Chat script loaded.");
 
-    <script>
-        console.log("Chat script loaded.");
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgBBp8TATR616ssonog_W00mLoMzC5X6I",
+      authDomain: "login-page-ce50f.firebaseapp.com",
+      projectId: "login-page-ce50f",
+      storageBucket: "login-page-ce50f.firebasestorage.app",
+      messagingSenderId: "274104600411",
+      appId: "1:274104600411:web:0a0248a995bea745e33c7e",
+      measurementId: "G-E1PKLWQHYB"
+    };
+    console.log("Firebase config:", firebaseConfig);
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyDgBBp8TATR616ssonog_W00mLoMzC5X6I", 
-          authDomain: "login-page-ce50f.firebaseapp.com",
-          projectId: "login-page-ce50f",
-          storageBucket: "login-page-ce50f.firebasestorage.app",
-          messagingSenderId: "274104600411",
-          appId: "1:274104600411:web:0a0248a995bea745e33c7e",
-          measurementId: "G-E1PKLWQHYB" 
-        };
-        console.log("Firebase config:", firebaseConfig);
+    let app = null;
+    let database = null;
+    let storage = null;
+    let analytics = null;
 
-        let app = null;
-        let database = null;
-        let storage = null;
-        let analytics = null;
+    let allowedUsersRef = null;
+    let onlineUsersRef = null;
+    let storageRef = null;
+    let groupsRef = null;
 
-        let allowedUsersRef = null;
-        let onlineUsersRef = null;
-        let storageRef = null;
-        let groupsRef = null; 
+    const loginContainer = document.getElementById('login-container');
+    const loginCodeInput = document.getElementById('login-code');
+    const loginNameInput = document.getElementById('login-name');
+    const loginButton = document.getElementById('login-button');
+    const loginError = document.getElementById('login-error');
+    const firebaseChatInitErrorElement = document.getElementById('firebase-chat-init-error');
 
-        const loginContainer = document.getElementById('login-container');
-        const loginCodeInput = document.getElementById('login-code');
-        const loginNameInput = document.getElementById('login-name');
-        const loginButton = document.getElementById('login-button');
-        const loginError = document.getElementById('login-error');
-        const firebaseChatInitErrorElement = document.getElementById('firebase-chat-init-error');
+    const chatContainer = document.getElementById('chat-container');
+    const chatHeader = document.getElementById('chat-header');
+    const userListToggleButton = document.getElementById('user-list-toggle-button');
+    const groupSelect = document.getElementById('group-select');
+    const headerTitleSpan = document.querySelector('#chat-header .header-title');
+    const groupNameSpan = document.getElementById('group-name');
+    const currentUsernameSpan = document.getElementById('current-username');
 
-        const chatContainer = document.getElementById('chat-container');
-        const chatHeader = document.getElementById('chat-header');
-        const userListToggleButton = document.getElementById('user-list-toggle-button');
-        const groupSelect = document.getElementById('group-select'); 
-        const headerTitleSpan = document.querySelector('#chat-header .header-title');
-        const groupNameSpan = document.getElementById('group-name');
-        const currentUsernameSpan = document.getElementById('current-username');
+    const userList = document.getElementById('user-list');
+    const userListUl = document.querySelector('#user-list ul');
+    const messageArea = document.getElementById('message-area');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const imageUploadButton = document.getElementById('image-upload-button');
+    const imageUploadInput = document.getElementById('image-upload-input');
+    const scrollToBottomButton = document.getElementById('scroll-to-bottom');
 
-        const userList = document.getElementById('user-list');
-        const userListUl = document.querySelector('#user-list ul');
-        const messageArea = document.getElementById('message-area');
-        const messageInput = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-button');
-        const imageUploadButton = document.getElementById('image-upload-button');
-        const imageUploadInput = document.getElementById('image-upload-input');
-        const scrollToBottomButton = document.getElementById('scroll-to-bottom');
+    const imageModal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalCloseButton = document.querySelector('.modal-close');
+    const modalDownloadButton = document.querySelector('.modal-download');
 
-        const imageModal = document.getElementById('image-modal');
-        const modalImage = document.getElementById('modal-image');
-        const modalCloseButton = document.querySelector('.modal-close');
-        const modalDownloadButton = document.querySelector('.modal-download');
+    let currentUser = null;
+    let currentUserId = null;
+    let currentGroupId = null;
+    let currentGroupName = null;
+    let messagesListener = null;
 
-        let currentUser = null; 
-        let currentUserId = null; 
-        let currentGroupId = null; 
-        let currentGroupName = null; 
-        let messagesListener = null; 
+    let isScrolling = false;
+    let isPinching = false;
+    let initialDistance = 0;
+    let initialX = 0;
+    let initialY = 0;
+    let currentScale = 1;
 
-        let isScrolling = false;
-        let isPinching = false;
-        let initialDistance = 0;
-        let initialX = 0; 
-        let initialY = 0; 
-        let currentScale = 1; 
+    function generatePersistentUserId(code, name) {
+         return `${code}_${name.toLowerCase().replace(/\s+/g, '').replace(/[.#$\[\]]/g, '_')}`;
+     }
 
-        function generatePersistentUserId(code, name) {
-             return `${code}_${name.toLowerCase().replace(/\s+/g, '').replace(/[.#$\[\]]/g, '_')}`;
+    function scrollToBottom() {
+         if(messageArea) {
+            messageArea.scrollTop = messageArea.scrollHeight;
+            messageArea.classList.remove('scrolling');
+         }
+    }
+
+    function toggleScrollButton() {
+         if(messageArea && scrollToBottomButton) {
+            if (messageArea.scrollHeight - messageArea.scrollTop > messageArea.clientHeight + 100) {
+                scrollToBottomButton.classList.add('show');
+            } else {
+                scrollToBottomButton.classList.remove('show');
+            }
+         }
+    }
+
+    function playNotificationSound() {
+         try {
+             const audio = new Audio('data:audio/wav;base64,UklGRlIAAABXQVZFZm10RBIADAAAAAEAAQIAQB8AAEAfAAABAAEAaW5mbwAAAEkAAADgfEJUUkxUBAAAAgAAAFJpcpYdHA==')
+             audio.play().catch(e => console.warn("Error playing sound:", e.message));
+         } catch (e) {
+             console.warn("Browser does not support Audio API or playback failed:", e.message);
+         }
+     }
+
+    function showLogin() {
+        if(loginContainer) loginContainer.style.display = 'block';
+        if(chatContainer) chatContainer.style.display = 'none';
+         if (window.innerWidth <= 768 && chatContainer) {
+             chatContainer.classList.remove('user-list-visible');
+             if(userList) userList.style.display = 'none';
+         }
+    }
+
+    function showChat() {
+        if(loginContainer) loginContainer.style.display = 'none';
+        if(chatContainer) chatContainer.style.display = 'grid';
+
+         if(messageArea) {
+             messageArea.addEventListener('scroll', toggleScrollButton);
+             toggleScrollButton();
          }
 
-        function scrollToBottom() {
-             if(messageArea) {
-                messageArea.scrollTop = messageArea.scrollHeight;
-                messageArea.classList.remove('scrolling');
-             }
+         if (window.innerWidth <= 768 && userList) {
+             userList.style.display = 'none';
+         }
+
+         if(window.innerWidth <= 768 && userListToggleButton) {
+             userListToggleButton.style.display = 'block';
+         } else if (userListToggleButton) {
+             userListToggleButton.style.display = 'none';
+         }
+    }
+
+
+    function displayMessage(message) {
+        if (!messageArea) return;
+
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.dataset.messageId = message.key;
+
+        const isMyMessage = currentUser && message.senderId === currentUser.userId;
+
+        if (isMyMessage) {
+            messageElement.classList.add('my-message');
+        } else {
+            messageElement.classList.add('other-message');
         }
 
-        function toggleScrollButton() {
-             if(messageArea && scrollToBottomButton) {
-                if (messageArea.scrollHeight - messageArea.scrollTop > messageArea.clientHeight + 100) {
-                    scrollToBottomButton.classList.add('show');
-                } else {
-                    scrollToBottomButton.classList.remove('show');
+        const avatarElement = document.createElement('div');
+        avatarElement.classList.add('message-avatar');
+        avatarElement.textContent = message.senderName ? message.senderName.substring(0, 2).toUpperCase() : '??';
+
+
+        const contentElement = document.createElement('div');
+        contentElement.classList.add('message-content');
+
+        const senderElement = document.createElement('div');
+        senderElement.classList.add('message-sender');
+        senderElement.textContent = message.senderName || 'مستخدم غير معروف';
+
+        contentElement.appendChild(senderElement);
+
+
+        if (message.type === 'text') {
+            const textElement = document.createElement('div');
+            textElement.classList.add('message-text');
+            textElement.textContent = message.text;
+            contentElement.appendChild(textElement);
+        } else if (message.type === 'image' && message.imageUrl) {
+            const imgElement = document.createElement('img');
+            imgElement.classList.add('message-image');
+            imgElement.src = message.imageUrl;
+             imgElement.classList.add('loading');
+            imgElement.onload = () => {
+                 imgElement.classList.remove('loading');
+                 if (messageArea.scrollHeight - messageArea.scrollTop - messageArea.clientHeight < 50) {
+                     scrollToBottom();
+                 }
+             };
+             imgElement.onerror = () => {
+                 console.error("Failed to load image:", message.imageUrl);
+                 const errorText = document.createElement('div');
+                 errorText.classList.add('message-text');
+                 errorText.style.color = 'red';
+                 errorText.textContent = 'فشل تحميل الصورة';
+                 contentElement.appendChild(errorText);
+             };
+            imgElement.dataset.imageUrl = message.imageUrl;
+            contentElement.appendChild(imgElement);
+        }
+
+         if (isMyMessage && database && currentGroupId && message.key) {
+             const messageRef = database.ref('groupMessages').child(currentGroupId).child(message.key);
+
+             const deleteButtonElement = document.createElement('button');
+             deleteButtonElement.classList.add('delete-button');
+             deleteButtonElement.textContent = 'x';
+             deleteButtonElement.title = 'حذف الرسالة';
+             deleteButtonElement.addEventListener('click', () => {
+                console.log("Attempting to delete message with key:", message.key, "from group:", currentGroupId);
+                 messageRef.remove()
+                     .then(() => console.log("Message removed successfully:", message.key))
+                     .catch(error => console.error("Error removing message:", error));
+             });
+             contentElement.appendChild(deleteButtonElement);
+         }
+
+
+        if (isMyMessage) {
+             messageElement.appendChild(contentElement);
+             messageElement.appendChild(avatarElement);
+        } else {
+             messageElement.appendChild(avatarElement);
+             messageElement.appendChild(contentElement);
+        }
+
+
+        messageArea.appendChild(messageElement);
+
+        if (isMyMessage || (messageArea.scrollHeight - messageArea.scrollTop - messageArea.clientHeight) < 200) {
+             messageArea.classList.add('scrolling');
+             setTimeout(scrollToBottom, 100);
+         }
+
+         if (!isMyMessage && document.visibilityState === 'visible') { // Only play sound if tab is active
+             playNotificationSound();
+         }
+    }
+
+    function updateOnlineUsersList(users) {
+        if (!userListUl) return;
+        userListUl.innerHTML = '';
+        if (users) {
+            const sortedUserIds = Object.keys(users).sort((uidA, uidB) => {
+                const userA = users[uidA];
+                const userB = users[uidB];
+
+                if (!userA || !userB) return 0;
+
+                if (userA.isOnline && !userB.isOnline) return -1;
+                if (!userA.isOnline && userB.isOnline) return 1;
+
+                const nameA = userA.name || '';
+                const nameB = userB.name || '';
+                return nameA.localeCompare(nameB, 'ar');
+            });
+
+
+            sortedUserIds.forEach(userId => {
+                 const user = users[userId];
+                 if (!user || !user.name) {
+                      console.warn("Skipping invalid user entry in online list:", user);
+                      return;
+                 }
+
+                const li = document.createElement('li');
+
+                const statusSpan = document.createElement('span');
+                statusSpan.classList.add(user.isOnline ? 'online-status' : 'offline-status');
+                statusSpan.title = user.isOnline ? 'متصل' : 'غير متصل';
+
+                li.appendChild(statusSpan);
+                li.appendChild(document.createTextNode(user.name));
+
+
+                if (!user.isOnline && user.lastSeen) {
+                    const lastSeenSpan = document.createElement('span');
+                    lastSeenSpan.classList.add('last-seen');
+                     const lastSeenTime = new Date(user.lastSeen);
+                     try {
+                          lastSeenSpan.textContent = ` (آخر ظهور: ${lastSeenTime.toLocaleDateString('ar-EG')} ${lastSeenTime.toLocaleTimeString('ar-EG')})`;
+                     } catch (e) {
+                          console.error("Error formatting last seen date:", user.lastSeen, e);
+                          lastSeenSpan.textContent = ` (آخر ظهور: غير معروف)`;
+                     }
+                    li.appendChild(lastSeenSpan);
                 }
-             }
-        }
 
-        function playNotificationSound() {
-             try {
-                 const audio = new Audio('data:audio/wav;base64,UklGRlIAAABXQVZFZm10RBIADAAAAAEAAQIAQB8AAEAfAAABAAEAaW5mbwAAAEkAAADgfEJUUkxUBAAAAgAAAFJpcpYdHA==')
-                 audio.play().catch(e => console.warn("Error playing sound:", e.message));
-             } catch (e) {
-                 console.warn("Browser does not support Audio API or playback failed:", e.message);
-             }
+                userListUl.appendChild(li);
+            });
+        }
+    }
+
+     function updateChatHeaderTitle(groupName, userName) {
+         if(groupNameSpan) {
+              groupNameSpan.textContent = groupName || 'المجموعة غير محددة';
          }
+         if(currentUsernameSpan) {
+              currentUsernameSpan.textContent = userName ? `أنت: ${userName}` : '';
+         }
+     }
 
-        function showLogin() {
-            if(loginContainer) loginContainer.style.display = 'block';
-            if(chatContainer) chatContainer.style.display = 'none';
-             if (window.innerWidth <= 768 && chatContainer) {
-                 chatContainer.classList.remove('user-list-visible');
-                 if(userList) userList.style.display = 'none';
-             }
-        }
+     function populateGroupSelect(groups) {
+         if (!groupSelect) return;
+         const previouslySelectedGroupId = groupSelect.value; // Preserve selection if possible
+         groupSelect.innerHTML = '';
 
-        function showChat() {
-            if(loginContainer) loginContainer.style.display = 'none';
-            if(chatContainer) chatContainer.style.display = 'grid';
-
-             if(messageArea) {
-                 messageArea.addEventListener('scroll', toggleScrollButton);
-                 toggleScrollButton();
-             }
-
-             if (window.innerWidth <= 768 && userList) {
-                 userList.style.display = 'none';
-             }
-
-             if(window.innerWidth <= 768 && userListToggleButton) {
-                 userListToggleButton.style.display = 'block';
-             } else if (userListToggleButton) {
-                 userListToggleButton.style.display = 'none';
-             }
-        }
+         const defaultOption = document.createElement('option');
+         defaultOption.value = '';
+         defaultOption.textContent = 'اختر مجموعة...';
+         defaultOption.disabled = true;
+         // defaultOption.selected = true; // Don't select by default if we try to preserve selection
+         groupSelect.appendChild(defaultOption);
 
 
-        function displayMessage(message) {
-            if (!messageArea) return;
-
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
-            messageElement.dataset.messageId = message.key;
-
-            const isMyMessage = currentUser && message.senderId === currentUser.userId;
-
-            if (isMyMessage) {
-                messageElement.classList.add('my-message');
-            } else {
-                messageElement.classList.add('other-message');
-            }
-
-            const avatarElement = document.createElement('div');
-            avatarElement.classList.add('message-avatar');
-            avatarElement.textContent = message.senderName ? message.senderName.substring(0, 2).toUpperCase() : '??';
-
-
-            const contentElement = document.createElement('div');
-            contentElement.classList.add('message-content');
-
-            const senderElement = document.createElement('div');
-            senderElement.classList.add('message-sender');
-            senderElement.textContent = message.senderName || 'مستخدم غير معروف';
-
-            contentElement.appendChild(senderElement);
-
-
-            if (message.type === 'text') {
-                const textElement = document.createElement('div');
-                textElement.classList.add('message-text');
-                textElement.textContent = message.text;
-                contentElement.appendChild(textElement);
-            } else if (message.type === 'image' && message.imageUrl) {
-                const imgElement = document.createElement('img');
-                imgElement.classList.add('message-image');
-                imgElement.src = message.imageUrl;
-                 imgElement.classList.add('loading');
-                imgElement.onload = () => {
-                     imgElement.classList.remove('loading');
-                     if (messageArea.scrollHeight - messageArea.scrollTop - messageArea.clientHeight < 50) {
-                         scrollToBottom();
+         let restoredSelection = false;
+         if (groups) {
+             Object.keys(groups).forEach(groupId => {
+                 const group = groups[groupId];
+                 if (group && group.name) {
+                     const option = document.createElement('option');
+                     option.value = groupId;
+                     option.textContent = group.name;
+                     if (groupId === previouslySelectedGroupId) {
+                         option.selected = true;
+                         restoredSelection = true;
                      }
-                 };
-                 imgElement.onerror = () => {
-                     console.error("Failed to load image:", message.imageUrl);
-                     const errorText = document.createElement('div');
-                     errorText.classList.add('message-text');
-                     errorText.style.color = 'red';
-                     errorText.textContent = 'فشل تحميل الصورة';
-                     contentElement.appendChild(errorText);
-                 };
-                imgElement.dataset.imageUrl = message.imageUrl;
-                contentElement.appendChild(imgElement);
-            }
-
-             if (isMyMessage && database && currentGroupId && message.key) { 
-                 const messageRef = database.ref('groupMessages').child(currentGroupId).child(message.key);
-
-                 const deleteButtonElement = document.createElement('button');
-                 deleteButtonElement.classList.add('delete-button');
-                 deleteButtonElement.textContent = 'x';
-                 deleteButtonElement.title = 'حذف الرسالة';
-                 deleteButtonElement.addEventListener('click', () => {
-                    console.log("Attempting to delete message with key:", message.key, "from group:", currentGroupId);
-                     messageRef.remove() 
-                         .then(() => console.log("Message removed successfully:", message.key))
-                         .catch(error => console.error("Error removing message:", error));
-                 });
-                 contentElement.appendChild(deleteButtonElement);
-             }
+                     groupSelect.appendChild(option);
+                 }
+             });
+         }
+         if (!restoredSelection) {
+            defaultOption.selected = true; // Select default if previous was not found or no previous
+         }
+     }
 
 
-            if (isMyMessage) {
-                 messageElement.appendChild(contentElement);
-                 messageElement.appendChild(avatarElement);
-            } else {
-                 messageElement.appendChild(avatarElement);
-                 messageElement.appendChild(contentElement);
-            }
+     function selectGroup(groupId, groupName) {
+         console.log(`Attempting to select group: ${groupId} (${groupName})`);
 
-
-            messageArea.appendChild(messageElement);
-
-            if (isMyMessage || (messageArea.scrollHeight - messageArea.scrollTop - messageArea.clientHeight) < 200) {
-                 messageArea.classList.add('scrolling');
-                 setTimeout(scrollToBottom, 100);
-             }
-
-             if (!isMyMessage && document.visibilityState === 'visible') { // Only play sound if tab is active
-                 playNotificationSound();
-             }
-        }
-
-        function updateOnlineUsersList(users) {
-            if (!userListUl) return;
-            userListUl.innerHTML = '';
-            if (users) {
-                const sortedUserIds = Object.keys(users).sort((uidA, uidB) => {
-                    const userA = users[uidA];
-                    const userB = users[uidB];
-
-                    if (!userA || !userB) return 0;
-
-                    if (userA.isOnline && !userB.isOnline) return -1;
-                    if (!userA.isOnline && userB.isOnline) return 1;
-
-                    const nameA = userA.name || '';
-                    const nameB = userB.name || '';
-                    return nameA.localeCompare(nameB, 'ar');
-                });
-
-
-                sortedUserIds.forEach(userId => {
-                     const user = users[userId];
-                     if (!user || !user.name) {
-                          console.warn("Skipping invalid user entry in online list:", user);
-                          return;
-                     }
-
-                    const li = document.createElement('li');
-
-                    const statusSpan = document.createElement('span');
-                    statusSpan.classList.add(user.isOnline ? 'online-status' : 'offline-status');
-                    statusSpan.title = user.isOnline ? 'متصل' : 'غير متصل';
-
-                    li.appendChild(statusSpan);
-                    li.appendChild(document.createTextNode(user.name));
-
-
-                    if (!user.isOnline && user.lastSeen) {
-                        const lastSeenSpan = document.createElement('span');
-                        lastSeenSpan.classList.add('last-seen');
-                         const lastSeenTime = new Date(user.lastSeen);
-                         try {
-                              lastSeenSpan.textContent = ` (آخر ظهور: ${lastSeenTime.toLocaleDateString('ar-EG')} ${lastSeenTime.toLocaleTimeString('ar-EG')})`;
-                         } catch (e) {
-                              console.error("Error formatting last seen date:", user.lastSeen, e);
-                              lastSeenSpan.textContent = ` (آخر ظهور: غير معروف)`;
-                         }
-                        li.appendChild(lastSeenSpan);
-                    }
-
-                    userListUl.appendChild(li);
-                });
-            }
-        }
-
-         function updateChatHeaderTitle(groupName, userName) {
-             if(groupNameSpan) {
-                  groupNameSpan.textContent = groupName || 'المجموعة غير محددة'; 
-             }
-             if(currentUsernameSpan) {
-                  currentUsernameSpan.textContent = userName ? `أنت: ${userName}` : ''; 
-             }
+         if (!database) {
+              console.error("Firebase Database not initialized.");
+              return;
          }
 
-         function populateGroupSelect(groups) {
-             if (!groupSelect) return;
-             const previouslySelectedGroupId = groupSelect.value; // Preserve selection if possible
-             groupSelect.innerHTML = '';
-
-             const defaultOption = document.createElement('option');
-             defaultOption.value = ''; 
-             defaultOption.textContent = 'اختر مجموعة...';
-             defaultOption.disabled = true; 
-             // defaultOption.selected = true; // Don't select by default if we try to preserve selection
-             groupSelect.appendChild(defaultOption);
-
-
-             let restoredSelection = false;
-             if (groups) {
-                 Object.keys(groups).forEach(groupId => {
-                     const group = groups[groupId];
-                     if (group && group.name) {
-                         const option = document.createElement('option');
-                         option.value = groupId;
-                         option.textContent = group.name;
-                         if (groupId === previouslySelectedGroupId) {
-                             option.selected = true;
-                             restoredSelection = true;
-                         }
-                         groupSelect.appendChild(option);
-                     }
-                 });
-             }
-             if (!restoredSelection) {
-                defaultOption.selected = true; // Select default if previous was not found or no previous
-             }
+         if (messagesListener && currentGroupId && currentGroupId !== groupId) {
+              console.log(`Detaching message listener for old group: ${currentGroupId}`);
+             database.ref('groupMessages').child(currentGroupId).off('child_added', messagesListener);
+             messagesListener = null;
+         } else if (currentGroupId === groupId && messagesListener) {
+             console.log("Group already selected and listener active:", groupId);
+             // Update header just in case name changed, though groupRef listener should handle group name changes.
+             if(currentUser) updateChatHeaderTitle(groupName, currentUser.name); else updateChatHeaderTitle(groupName, '');
+             return; // Avoid re-attaching if already on this group
          }
 
 
-         function selectGroup(groupId, groupName) {
-             console.log(`Attempting to select group: ${groupId} (${groupName})`);
-
-             if (!database) {
-                  console.error("Firebase Database not initialized.");
-                  return;
-             }
-
-             if (messagesListener && currentGroupId && currentGroupId !== groupId) { 
-                  console.log(`Detaching message listener for old group: ${currentGroupId}`);
-                 database.ref('groupMessages').child(currentGroupId).off('child_added', messagesListener);
-                 messagesListener = null; 
-             } else if (currentGroupId === groupId && messagesListener) {
-                 console.log("Group already selected and listener active:", groupId);
-                 // Update header just in case name changed, though groupRef listener should handle group name changes.
-                 if(currentUser) updateChatHeaderTitle(groupName, currentUser.name); else updateChatHeaderTitle(groupName, '');
-                 return; // Avoid re-attaching if already on this group
-             }
+         if(messageArea) messageArea.innerHTML = '';
+         console.log("Cleared message area for new group.");
 
 
-             if(messageArea) messageArea.innerHTML = '';
-             console.log("Cleared message area for new group.");
+         currentGroupId = groupId;
+         currentGroupName = groupName;
+         console.log(`Current group state updated: ${currentGroupId} (${currentGroupName})`);
 
-
-             currentGroupId = groupId;
-             currentGroupName = groupName;
-             console.log(`Current group state updated: ${currentGroupId} (${currentGroupName})`);
-
-             if(currentUser) { 
-                  updateChatHeaderTitle(currentGroupName, currentUser.name);
-             } else {
-                  updateChatHeaderTitle(currentGroupName, ''); 
-             }
-
-             if (currentGroupId) {
-                  console.log(`Attaching message listener for group: ${currentGroupId}`);
-                 const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
-
-                 messagesListener = groupMessagesRef.orderByChild('timestamp').on('child_added', snapshot => { // Order by timestamp
-                     const message = snapshot.val();
-                     message.key = snapshot.key;
-                      console.log("New message received (group listener):", message);
-                     displayMessage(message); 
-                 }, error => {
-                     console.error(`Error listening to messages for group ${currentGroupId}:`, error);
-                 });
-                
-                 // No need for separate .once('value') as .on('child_added') will fetch existing then new ones.
-                 // Ensure scroll after messages might have loaded
-                 setTimeout(scrollToBottom, 500); // Increased delay slightly for ordered messages
-
-                  if(messageInput) messageInput.disabled = false;
-                  if(sendButton) sendButton.disabled = false;
-                  if(imageUploadButton) imageUploadButton.disabled = false;
-
-
-             } else {
-                  console.log("No group selected, message listener not attached.");
-                  if(messageInput) messageInput.disabled = true;
-                  if(sendButton) sendButton.disabled = true;
-                  if(imageUploadButton) imageUploadButton.disabled = true;
-             }
+         if(currentUser) {
+              updateChatHeaderTitle(currentGroupName, currentUser.name);
+         } else {
+              updateChatHeaderTitle(currentGroupName, '');
          }
 
+         if (currentGroupId) {
+              console.log(`Attaching message listener for group: ${currentGroupId}`);
+             const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
 
-        // --- Firebase Initialization and Setup ---
-        try {
-            app = firebase.initializeApp(firebaseConfig);
-            database = app.database();
-            storage = app.storage();
-            analytics = firebase.analytics(); 
+             messagesListener = groupMessagesRef.orderByChild('timestamp').on('child_added', snapshot => { // Order by timestamp
+                 const message = snapshot.val();
+                 message.key = snapshot.key;
+                  console.log("New message received (group listener):", message);
+                 displayMessage(message);
+             }, error => {
+                 console.error(`Error listening to messages for group ${currentGroupId}:`, error);
+             });
 
-            allowedUsersRef = database.ref('allowedUsers');
-            onlineUsersRef = database.ref('onlineUsers');
-            groupsRef = database.ref('groups'); 
-            storageRef = storage.ref('chat_images');
+             // No need for separate .once('value') as .on('child_added') will fetch existing then new ones.
+             // Ensure scroll after messages might have loaded
+             setTimeout(scrollToBottom, 500); // Increased delay slightly for ordered messages
+
+              if(messageInput) messageInput.disabled = false;
+              if(sendButton) sendButton.disabled = false;
+              if(imageUploadButton) imageUploadButton.disabled = false;
 
 
-            console.log("Firebase chat initialized successfully. References ready.");
-            
-              if(groupsRef && groupSelect) {
-                   groupsRef.on('value', snapshot => {
-                       const groupsData = snapshot.val();
-                       console.log("Groups list received/updated:", groupsData);
-                       populateGroupSelect(groupsData);
+         } else {
+              console.log("No group selected, message listener not attached.");
+              if(messageInput) messageInput.disabled = true;
+              if(sendButton) sendButton.disabled = true;
+              if(imageUploadButton) imageUploadButton.disabled = true;
+         }
+     }
 
-                       // If a group is currently selected, check if its name changed
-                       if (currentGroupId && groupsData && groupsData[currentGroupId] && groupsData[currentGroupId].name !== currentGroupName) {
-                           currentGroupName = groupsData[currentGroupId].name;
-                           if (currentUser) {
-                               updateChatHeaderTitle(currentGroupName, currentUser.name);
-                           } else {
-                               updateChatHeaderTitle(currentGroupName, '');
-                           }
+
+    // --- Firebase Initialization and Setup ---
+    try {
+        app = firebase.initializeApp(firebaseConfig);
+        database = app.database();
+        storage = app.storage();
+        analytics = firebase.analytics();
+
+        allowedUsersRef = database.ref('allowedUsers');
+        onlineUsersRef = database.ref('onlineUsers');
+        groupsRef = database.ref('groups');
+        storageRef = storage.ref('chat_images');
+
+
+        console.log("Firebase chat initialized successfully. References ready.");
+
+          if(groupsRef && groupSelect) {
+               groupsRef.on('value', snapshot => {
+                   const groupsData = snapshot.val();
+                   console.log("Groups list received/updated:", groupsData);
+                   populateGroupSelect(groupsData);
+
+                   // If a group is currently selected, check if its name changed
+                   if (currentGroupId && groupsData && groupsData[currentGroupId] && groupsData[currentGroupId].name !== currentGroupName) {
+                       currentGroupName = groupsData[currentGroupId].name;
+                       if (currentUser) {
+                           updateChatHeaderTitle(currentGroupName, currentUser.name);
+                       } else {
+                           updateChatHeaderTitle(currentGroupName, '');
                        }
-                       // If no group is selected AND user is logged in, try to select the first available one.
-                       // This is also handled after login, but good for scenarios where groups load after login.
-                       else if (!currentGroupId && currentUser && groupsData && Object.keys(groupsData).length > 0) {
-                           const firstGroupId = Object.keys(groupsData)[0];
-                           if (firstGroupId && groupSelect.querySelector(`option[value="${firstGroupId}"]`)) {
-                                groupSelect.value = firstGroupId;
-                                selectGroup(firstGroupId, groupsData[firstGroupId].name || firstGroupId);
-                           }
-                       } else if ((!groupsData || Object.keys(groupsData).length === 0) && currentUser) {
+                   }
+                   // If no group is selected AND user is logged in, try to select the first available one.
+                   // This is also handled after login, but good for scenarios where groups load after login.
+                   else if (!currentGroupId && currentUser && groupsData && Object.keys(groupsData).length > 0) {
+                       const firstGroupId = Object.keys(groupsData)[0];
+                       if (firstGroupId && groupSelect.querySelector(`option[value="${firstGroupId}"]`)) {
+                            groupSelect.value = firstGroupId;
+                            selectGroup(firstGroupId, groupsData[firstGroupId].name || firstGroupId);
+                       }
+                   } else if ((!groupsData || Object.keys(groupsData).length === 0) && currentUser) {
                             console.warn("No groups available in Firebase.");
                             updateChatHeaderTitle("لا توجد مجموعات", currentUser.name);
                             if(messageInput) messageInput.disabled = true;
@@ -1091,7 +1090,7 @@
 
              if(onlineUsersRef && userListUl) {
                  onlineUsersRef.on('value', snapshot => {
-                     const onlineUsersData = snapshot.val(); 
+                     const onlineUsersData = snapshot.val();
                       console.log("Online users data received (global listener):", onlineUsersData);
                      updateOnlineUsersList(onlineUsersData);
                  }, error => {
@@ -1115,64 +1114,83 @@
 
              if(loginButton) loginButton.disabled = true;
              if(loginCodeInput) loginCodeInput.disabled = true;
-             if(loginNameInput) loginNameInput.disabled = true; 
+             if(loginNameInput) loginNameInput.disabled = true;
              if(messageInput) messageInput.disabled = true;
              if(sendButton) sendButton.disabled = true;
              if(imageUploadButton) imageUploadButton.disabled = true;
-             if(groupSelect) groupSelect.disabled = true; 
+             if(groupSelect) groupSelect.disabled = true;
         }
 
 
-        // --- Event Handlers ---
+    // --- Event Handlers ---
 
-        if (loginButton && loginCodeInput && loginNameInput && database) { 
-            loginButton.addEventListener('click', () => {
-                const code = loginCodeInput.value.trim();
-                const name = loginNameInput.value.trim();
-                if(loginError) loginError.textContent = ''; 
+    if (loginButton && loginCodeInput && loginNameInput && database) {
+        loginButton.addEventListener('click', () => {
+            const code = loginCodeInput.value.trim();
+            const name = loginNameInput.value.trim(); // الاسم الذي أدخله المستخدم
+            if(loginError) loginError.textContent = '';
 
-                if (!code || !name) {
-                    if(loginError) loginError.textContent = 'الرجاء إدخال الكود والاسم.';
-                    return;
+            if (!code || !name) {
+                if(loginError) loginError.textContent = 'الرجاء إدخال الكود والاسم.';
+                return;
+            }
+
+            console.log(`Login attempt with code: ${code}, name: ${name}`);
+
+            if (!allowedUsersRef || !onlineUsersRef) {
+                if(loginError) loginError.textContent = 'نظام التحقق أو الحضور غير جاهز. حاول مرة أخرى.';
+                console.error("Firebase refs (allowedUsersRef or onlineUsersRef) not initialized.");
+                return;
+            }
+
+            // --- بداية التعديل الرئيسي لمنطق التحقق ---
+            allowedUsersRef.child(code).once('value', snapshot => {
+                // --- إضافة هذه السطور لل debugging ---
+                console.log("Snapshot exists (Is code found in Firebase?):", snapshot.exists());
+                if (snapshot.exists()) {
+                    const storedUserData = snapshot.val();
+                    console.log("Stored user data (from Firebase for this code):", storedUserData);
+                    const expectedName = storedUserData.name;
+                    console.log("Expected name from Firebase (storedUserData.name):", expectedName);
+                    console.log("Name entered by user (loginNameInput.value.trim()):", name);
+                    console.log("Comparison in lowercase:");
+                    console.log(`'${name.toLowerCase()}' === '${expectedName ? expectedName.toLowerCase() : 'N/A'}'`);
+                    console.log("Result of comparison:", (expectedName && name.toLowerCase() === expectedName.toLowerCase()));
                 }
+                // --- نهاية سطور ال debugging ---
 
-                console.log(`Login attempt with code: ${code}, name: ${name}`);
+                if (snapshot.exists()) {
+                    // الكود موجود، الآن تحقق من الاسم
+                    const storedUserData = snapshot.val();
+                    const expectedName = storedUserData.name; // الاسم المسجل في قاعدة البيانات لهذا الكود
 
-                if (!allowedUsersRef || !onlineUsersRef) { 
-                    if(loginError) loginError.textContent = 'نظام التحقق أو الحضور غير جاهز. حاول مرة أخرى.';
-                    console.error("Firebase refs (allowedUsersRef or onlineUsersRef) not initialized.");
-                    return;
-                }
-
-                allowedUsersRef.child(code).once('value', snapshot => {
-                    if (snapshot.exists()) {
-                        console.log("Login code is valid.");
-                        currentUserId = generatePersistentUserId(code, name);
-                        currentUser = { code: code, name: name, userId: currentUserId };
+                    if (expectedName && name.toLowerCase() === expectedName.toLowerCase()) {
+                        // الكود صحيح والاسم صحيح (تمت مقارنة الأسماء بتجاهل حالة الأحرف)
+                        console.log("Login code and name are valid.");
+                        currentUserId = generatePersistentUserId(code, name); // استخدم الاسم المدخل من المستخدم للـ ID أو الاسم المسجل
+                        currentUser = { code: code, name: name, userId: currentUserId }; // استخدم الاسم المدخل من المستخدم للعرض
 
                         const userStatusRef = onlineUsersRef.child(currentUserId);
                         const userDataOnline = {
-                            name: currentUser.name,
+                            name: currentUser.name, // الاسم الذي سيظهر في قائمة المتصلين
                             isOnline: true,
-                            lastSeen: firebase.database.ServerValue.TIMESTAMP // This will be updated on connect
+                            lastSeen: firebase.database.ServerValue.TIMESTAMP
                         };
                         const userDataOffline = {
-                            name: currentUser.name, // Keep name on disconnect
+                            name: currentUser.name,
                             isOnline: false,
                             lastSeen: firebase.database.ServerValue.TIMESTAMP
                         };
 
-                        // 1. Set up onDisconnect behavior
                         userStatusRef.onDisconnect().set(userDataOffline)
                             .then(() => {
                                 console.log("onDisconnect handler set for user:", currentUserId);
-                                // 2. Set current status to online
                                 return userStatusRef.set(userDataOnline);
                             })
                             .then(() => {
                                 console.log("User set as online. Showing chat.");
                                 showChat();
-                                updateChatHeaderTitle(currentGroupName, currentUser.name); 
+                                updateChatHeaderTitle(currentGroupName, currentUser.name);
 
                                 if (!currentGroupId && groupSelect && groupSelect.options.length > 0) {
                                     let firstSelectableOption = null;
@@ -1184,7 +1202,7 @@
                                     }
 
                                     if (firstSelectableOption) {
-                                        groupSelect.value = firstSelectableOption.value; 
+                                        groupSelect.value = firstSelectableOption.value;
                                         console.log(`Auto-selecting group: ${firstSelectableOption.value} - ${firstSelectableOption.text}`);
                                         selectGroup(firstSelectableOption.value, firstSelectableOption.text);
                                     } else {
@@ -1192,6 +1210,8 @@
                                          if(messageInput) messageInput.disabled = true;
                                          if(sendButton) sendButton.disabled = true;
                                          if(imageUploadButton) imageUploadButton.disabled = true;
+                                         // إذا أضفت زر التسجيل الصوتي، قم بتعطيله هنا أيضًا
+                                         // if(recordAudioButton) recordAudioButton.disabled = true;
                                     }
                                 } else if (currentGroupId && currentGroupName) {
                                     selectGroup(currentGroupId, currentGroupName);
@@ -1204,146 +1224,153 @@
                             });
 
                     } else {
-                        console.log("Login code is invalid.");
-                        if(loginError) loginError.textContent = 'الكود المدخل غير صحيح.';
+                        // الكود صحيح، لكن الاسم المدخل لا يتطابق مع الاسم المسجل لهذا الكود
+                        console.log("Login code is valid, but name is incorrect.");
+                        if(loginError) loginError.textContent = 'الاسم المدخل غير صحيح لهذا الكود.';
                     }
-                }, error => {
-                    console.error("Error accessing allowed users:", error);
-                    if(loginError) loginError.textContent = 'خطأ في التحقق من الكود. حاول مرة أخرى.';
-                });
+                } else {
+                    // الكود المدخل غير موجود (غير صحيح)
+                    console.log("Login code is invalid.");
+                    if(loginError) loginError.textContent = 'الكود المدخل غير صحيح.';
+                }
+            }, error => {
+                console.error("Error accessing allowed users:", error);
+                if(loginError) loginError.textContent = 'خطأ في التحقق من الكود. حاول مرة أخرى.';
             });
-            console.log("Login button event listener attached.");
-        } else {
-            console.error("Could not attach login button event listener. Crucial elements or Firebase database ref missing.");
-            if(loginContainer && loginContainer.style.display !== 'none' && loginError) { 
-                 loginError.textContent = "خطأ في تهيئة زر الدخول. حاول تحديث الصفحة.";
-            }
+            // --- نهاية التعديل الرئيسي لمنطق التحقق ---
+        });
+        console.log("Login button event listener attached.");
+    } else {
+        console.error("Could not attach login button event listener. Crucial elements or Firebase database ref missing.");
+        if(loginContainer && loginContainer.style.display !== 'none' && loginError) {
+             loginError.textContent = "خطأ في تهيئة زر الدخول. حاول تحديث الصفحة.";
         }
+    }
 
 
-         if(groupSelect) {
-             groupSelect.addEventListener('change', (event) => {
-                 const selectedGroupId = event.target.value;
-                 const selectedOption = event.target.options[event.target.selectedIndex];
-                 const selectedGroupName = selectedOption ? selectedOption.text : null;
-                 if (selectedGroupId && selectedGroupName && selectedOption && !selectedOption.disabled) { 
-                      selectGroup(selectedGroupId, selectedGroupName);
-                 } else if (!selectedGroupId) { 
-                      console.warn("Default 'select group' option chosen. No action taken.");
-                      if(messageInput) messageInput.disabled = true;
-                      if(sendButton) sendButton.disabled = true;
-                      if(imageUploadButton) imageUploadButton.disabled = true;
-                 }
-             });
-              console.log("Group select change listener attached.");
-         }
+     if(groupSelect) {
+         groupSelect.addEventListener('change', (event) => {
+             const selectedGroupId = event.target.value;
+             const selectedOption = event.target.options[event.target.selectedIndex];
+             const selectedGroupName = selectedOption ? selectedOption.text : null;
+             if (selectedGroupId && selectedGroupName && selectedOption && !selectedOption.disabled) {
+                  selectGroup(selectedGroupId, selectedGroupName);
+             } else if (!selectedGroupId) {
+                  console.warn("Default 'select group' option chosen. No action taken.");
+                  if(messageInput) messageInput.disabled = true;
+                  if(sendButton) sendButton.disabled = true;
+                  if(imageUploadButton) imageUploadButton.disabled = true;
+             }
+         });
+          console.log("Group select change listener attached.");
+     }
 
 
-         if(sendButton && messageInput && database) { 
-             sendButton.addEventListener('click', () => {
-                  console.log("Send button clicked!");
-                 const text = messageInput.value.trim();
-                 if (text && currentUser && currentUser.userId && currentGroupId) {
-                     const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
-                     const newMessage = {
-                         type: 'text',
-                         senderName: currentUser.name,
-                         senderId: currentUser.userId,
-                         text: text,
-                         timestamp: firebase.database.ServerValue.TIMESTAMP
-                     };
-                      console.log("Sending text message:", newMessage, "to group:", currentGroupId);
-                     groupMessagesRef.push(newMessage) 
-                         .then(() => {
-                             console.log("Text message sent successfully.");
-                             messageInput.value = '';
-                         })
-                         .catch(error => {
-                             console.error("Error sending text message:", error);
-                         });
-                 } else {
-                      console.warn("Send click ignored: Text empty, user not logged in, or no group selected.");
-                 }
-             });
-              console.log("Event listener attached to send button.");
-         }
+     if(sendButton && messageInput && database) {
+         sendButton.addEventListener('click', () => {
+              console.log("Send button clicked!");
+             const text = messageInput.value.trim();
+             if (text && currentUser && currentUser.userId && currentGroupId) {
+                 const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
+                 const newMessage = {
+                     type: 'text',
+                     senderName: currentUser.name,
+                     senderId: currentUser.userId,
+                     text: text,
+                     timestamp: firebase.database.ServerValue.TIMESTAMP
+                 };
+                  console.log("Sending text message:", newMessage, "to group:", currentGroupId);
+                 groupMessagesRef.push(newMessage)
+                     .then(() => {
+                         console.log("Text message sent successfully.");
+                         messageInput.value = '';
+                     })
+                     .catch(error => {
+                         console.error("Error sending text message:", error);
+                     });
+             } else {
+                  console.warn("Send click ignored: Text empty, user not logged in, or no group selected.");
+             }
+         });
+          console.log("Event listener attached to send button.");
+     }
 
 
-         if(messageInput && sendButton) {
-             messageInput.addEventListener('keypress', (event) => {
-                  console.log("Key pressed in message input:", event.key);
-                 if (event.key === 'Enter') {
-                     event.preventDefault();
-                     sendButton.click();
-                 }
-             });
-              console.log("Event listener attached to message input (keypress).");
-         }
+     if(messageInput && sendButton) {
+         messageInput.addEventListener('keypress', (event) => {
+              console.log("Key pressed in message input:", event.key);
+             if (event.key === 'Enter') {
+                 event.preventDefault();
+                 sendButton.click();
+             }
+         });
+          console.log("Event listener attached to message input (keypress).");
+     }
 
 
-         if(imageUploadButton && imageUploadInput) {
-             imageUploadButton.addEventListener('click', () => {
-                  console.log("Image upload button clicked.");
-                 imageUploadInput.click();
-             });
-              console.log("Event listener attached to image upload button.");
-         }
+     if(imageUploadButton && imageUploadInput) {
+         imageUploadButton.addEventListener('click', () => {
+              console.log("Image upload button clicked.");
+             imageUploadInput.click();
+         });
+          console.log("Event listener attached to image upload button.");
+     }
 
 
-         if(imageUploadInput && storage && database) { 
-              imageUploadInput.addEventListener('change', (event) => {
-                   console.log("Image upload input change event fired.");
-                  const file = event.target.files[0];
-                  if (file && currentUser && currentUser.userId && currentGroupId && storageRef) { 
-                       console.log("File selected:", file.name);
-                      const fileName = `${Date.now()}_${file.name}`;
-                      const imageFileRef = storageRef.child(`${currentUser.userId}/${fileName}`); 
+     if(imageUploadInput && storage && database) {
+          imageUploadInput.addEventListener('change', (event) => {
+               console.log("Image upload input change event fired.");
+              const file = event.target.files[0];
+              if (file && currentUser && currentUser.userId && currentGroupId && storageRef) {
+                   console.log("File selected:", file.name);
+                  const fileName = `${Date.now()}_${file.name}`;
+                  const imageFileRef = storageRef.child(`${currentUser.userId}/${fileName}`);
 
-                      console.log("Starting image upload to:", imageFileRef.fullPath);
-                      const uploadTask = imageFileRef.put(file);
+                  console.log("Starting image upload to:", imageFileRef.fullPath);
+                  const uploadTask = imageFileRef.put(file);
 
-                      uploadTask.on('state_changed',
-                          (snapshot) => {
-                              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                              console.log('Upload is ' + progress.toFixed(2) + '% done');
-                          },
-                          (error) => {
-                              console.error("Image upload failed:", error);
-                          },
-                          () => {
-                              console.log("Image upload complete. Getting download URL...");
-                              uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                                  console.log('File available at', downloadURL);
+                  uploadTask.on('state_changed',
+                      (snapshot) => {
+                          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                          console.log('Upload is ' + progress.toFixed(2) + '% done');
+                      },
+                      (error) => {
+                          console.error("Image upload failed:", error);
+                      },
+                      () => {
+                          console.log("Image upload complete. Getting download URL...");
+                          uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                               console.log('File available at', downloadURL);
 
-                                   const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
-                                  const newMessage = {
-                                      type: 'image',
-                                      senderName: currentUser.name,
-                                      senderId: currentUser.userId, 
-                                      imageUrl: downloadURL,
-                                      timestamp: firebase.database.ServerValue.TIMESTAMP
-                                  };
-                                  console.log("Sending image message:", newMessage, "to group:", currentGroupId);
-                                  groupMessagesRef.push(newMessage) 
-                                      .then(() => {
-                                          console.log("Image message sent successfully.");
-                                      })
-                                      .catch(error => {
-                                          console.error("Error sending image message:", error);
-                                      });
-                              });
-                          }
-                      );
-                  } else {
-                       console.warn("Image upload ignored: No file, user not logged in, no group selected, or storageRef not ready.");
-                  }
-                  event.target.value = null;
-              });
-              console.log("Event listener attached to image upload input.");
-         }
+                               const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
+                              const newMessage = {
+                                  type: 'image',
+                                  senderName: currentUser.name,
+                                  senderId: currentUser.userId,
+                                  imageUrl: downloadURL,
+                                  timestamp: firebase.database.ServerValue.TIMESTAMP
+                              };
+                              console.log("Sending image message:", newMessage, "to group:", currentGroupId);
+                              groupMessagesRef.push(newMessage)
+                                  .then(() => {
+                                      console.log("Image message sent successfully.");
+                                  })
+                                  .catch(error => {
+                                      console.error("Error sending image message:", error);
+                                  });
+                          });
+                      }
+                  );
+              } else {
+                   console.warn("Image upload ignored: No file, user not logged in, no group selected, or storageRef not ready.");
+              }
+              event.target.value = null;
+          });
+          console.log("Event listener attached to image upload input.");
+     }
 
 
-         if(scrollToBottomButton) {
+     if(scrollToBottomButton) {
              scrollToBottomButton.addEventListener('click', () => {
                   console.log("Scroll to bottom button clicked.");
                  scrollToBottom();
@@ -1352,7 +1379,7 @@
          }
 
 
-         if(messageArea && imageModal && modalCloseButton && modalDownloadButton && modalImage) {
+     if(messageArea && imageModal && modalCloseButton && modalDownloadButton && modalImage) {
               messageArea.addEventListener('click', (event) => {
                    console.log("Message area clicked.", event.target);
                   if (event.target.classList.contains('message-image')) {
@@ -1373,8 +1400,8 @@
                   imageModal.style.display = 'none';
                   modalImage.src = '';
                    modalImage.style.transform = 'scale(1)';
-                   modalImage.style.left = '0px'; 
-                   modalImage.style.top = '0px';  
+                   modalImage.style.left = '0px';
+                   modalImage.style.top = '0px';
                    isPinching = false;
                    initialX = initialY = initialDistance = 0;
                    currentScale = 1;
@@ -1416,12 +1443,12 @@
                        isPinching = true;
                        initialDistance = Math.hypot(event.touches[1].clientX - event.touches[0].clientX, event.touches[1].clientY - event.touches[0].clientY);
                        currentScale = parseFloat(modalImage.style.transform.replace('scale(', '').replace(')', '')) || 1;
-                       event.preventDefault(); 
-                   } else if (event.touches.length === 1 && currentScale > 1) { 
+                       event.preventDefault();
+                   } else if (event.touches.length === 1 && currentScale > 1) {
                         initialX = event.touches[0].clientX - (parseFloat(modalImage.style.left) || 0);
                         initialY = event.touches[0].clientY - (parseFloat(modalImage.style.top) || 0);
                         modalImage.classList.add('dragging');
-                        event.preventDefault(); 
+                        event.preventDefault();
                    }
                }, { passive: false });
 
@@ -1442,9 +1469,9 @@
                }, { passive: false });
 
 
-               modalImage.addEventListener('touchend', (event) => { 
-                    if (event.touches.length < 2) isPinching = false; 
-                    if (event.touches.length < 1) modalImage.classList.remove('dragging'); 
+               modalImage.addEventListener('touchend', (event) => {
+                    if (event.touches.length < 2) isPinching = false;
+                    if (event.touches.length < 1) modalImage.classList.remove('dragging');
                });
 
 
@@ -1460,16 +1487,16 @@
               });
               console.log("Event listener attached to user list toggle button.");
 
-               if (window.innerWidth <= 768) { 
+               if (window.innerWidth <= 768) {
                    document.addEventListener('click', (event) => {
-                        if (window.innerWidth <= 768) { 
+                        if (window.innerWidth <= 768) {
                             const isClickInsideUserList = userList && userList.contains(event.target);
                             const isClickOnToggleButton = userListToggleButton && userListToggleButton.contains(event.target);
                             const isListVisible = chatContainer && chatContainer.classList.contains('user-list-visible');
 
                             if (isListVisible && !isClickInsideUserList && !isClickOnToggleButton) {
                                 console.log("Clicked outside user list/toggle button on mobile, closing.");
-                                userListToggleButton.click(); 
+                                userListToggleButton.click();
                             }
                         }
                    });
@@ -1499,15 +1526,15 @@
                   if (!chatContainer || !chatContainer.classList.contains('user-list-visible')) {
                       userList.style.display = 'none';
                   } else {
-                      userList.style.display = 'block'; 
+                      userList.style.display = 'block';
                   }
               }
-          } else { 
-              if(userList) userList.style.display = 'block'; 
+          } else {
+              if(userList) userList.style.display = 'block';
               if(chatContainer) chatContainer.classList.remove('user-list-visible');
           }
      });
-      window.dispatchEvent(new Event('resize')); 
+      window.dispatchEvent(new Event('resize'));
        console.log("Resize listener attached and triggered.");
 
 
@@ -1515,7 +1542,7 @@
           console.log("Window beforeunload event triggered.");
           // No explicit action needed here if onDisconnect is correctly set up.
           // Firebase handles the disconnect and triggers the onDisconnect listener.
-          // If currentUser and currentUserId are null (user never logged in or somehow logged out clean), 
+          // If currentUser and currentUserId are null (user never logged in or somehow logged out clean),
           // then onDisconnect wouldn't have been set for this session.
           if (currentUser && currentUserId && onlineUsersRef && database.app.options) { // Check if firebase is still configured
               // Optional: For an even cleaner exit, you might consider removing the onDisconnect handler
@@ -1529,7 +1556,9 @@
 
 
      console.log("Chat script fully executed.");
-    </script>
+</script>
+
+
 
 </body>
 </html>
