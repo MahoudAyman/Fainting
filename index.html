@@ -1,0 +1,3688 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واتساب مصغّر مع Firebase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            direction: rtl; /* Right-to-left for Arabic */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.5s ease;
+            background: linear-gradient(135deg, #1a1a2e, #16213e); /* CSS Feature 6: Gradient Background */
+            color: var(--text-color); /* Use CSS variables */
+            --bg-color: #1a1a2e; /* Dark Mode Default */
+            --text-color: #e0e0e0;
+            --primary-color: #4a4e69;
+            --secondary-color: #9191a1;
+            --my-message-bg: #4a4e69;
+            --other-message-bg: #2e3a4e;
+            --input-bg: #2e3a4e;
+            --input-text: #e0e0e0;
+            --border-color: #4a4e69;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --scroll-button-bg: #5e6b8c;
+            --header-bg: #16213e;
+            --login-error-color: #ff6b6b; /* Define error color as variable */
+            --user-list-bg-color: #2e3a4e; /* Slightly different background for user list */
+            --select-bg: #2e3a4e; /* Background for dropdown */
+            --select-text: #e0e0e0; /* Text color for dropdown */
+            --select-border: var(--border-color);
+            --audio-progress: #4a4e69;
+            --audio-progress-played: #5e6b8c;
+            --audio-button-bg: #5e6b8c;
+            --recording-color: #ff3b30;
+            --recording-wave: #ff5e52;
+            --recording-time: #ff8a80;
+        }
+
+        /* CSS Feature 1: Dark Mode (Default) */
+        /* -- variables defined in body */
+
+        #login-container {
+            background-color: var(--bg-color);
+            padding: 30px;
+            border-radius: 15px; /* CSS Feature 13: Rounded Corners */
+            box-shadow: 0 10px 25px var(--shadow-color); /* CSS Feature 12: Soft Shadow */
+            text-align: center;
+        }
+
+        #login-container h2 {
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        #login-container input {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px; /* CSS Feature 13: Rounded Corners */
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            font-size: 1rem;
+        }
+
+        #login-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: #5e6b8c;
+            color: white;
+            border: none;
+            border-radius: 8px; /* CSS Feature 13: Rounded Corners */
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        #login-container button:hover {
+            background-color: #7a8ba5;
+        }
+
+        #login-container button:active {
+            transform: scale(0.98); /* CSS Feature 14: Button Animation */
+        }
+
+        #login-error {
+            color: var(--login-error-color); /* Use variable */
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+         #firebase-chat-init-error { /* Style for Firebase init error */
+             color: var(--login-error-color);
+             margin-top: 10px;
+             font-size: 0.9rem;
+         }
+
+
+        #chat-container {
+            display: none; /* Hidden by default */
+            width: 95%;
+            max-width: 800px;
+            height: 95vh;
+            max-height: 900px;
+            background-color: var(--bg-color);
+            border-radius: 15px; /* CSS Feature 13: Rounded Corners */
+            box-shadow: 0 10px 30px var(--shadow-color); /* CSS Feature 12: Soft Shadow */
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto 1fr auto; /* Header, Messages, Input */
+            grid-template-columns: 1fr 200px; /* Main chat area, User list (default wide screen) */
+            grid-template-areas:
+                "header header"
+                "messages userlist"
+                "input input";
+            position: relative; /* For scroll button positioning */
+            transition: grid-template-columns 0.3s ease; /* Smooth transition for layout changes */
+        }
+
+        /* Responsive Layout */
+        @media (max-width: 768px) {
+            #chat-container {
+                 grid-template-columns: 1fr; /* Stack columns by default on small screens */
+                 grid-template-areas:
+                    "header"
+                    "messages"
+                    "input";
+            }
+
+             #chat-container.user-list-visible {
+                 grid-template-columns: 1fr; 
+                 grid-template-areas:
+                     "header"
+                     "messages"
+                     "input"; 
+                 overflow: hidden; 
+             }
+        }
+
+
+        #chat-header {
+            grid-area: header;
+            background-color: var(--header-bg);
+            color: var(--text-color);
+            padding: 10px 15px; 
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-bottom: 1px solid var(--border-color);
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            flex-wrap: wrap; 
+            gap: 10px; 
+        }
+
+         #chat-header .header-title { 
+             flex-grow: 1; 
+             text-align: center; 
+         }
+
+          #chat-header .header-title span {
+               display: block; 
+               font-size: 0.9em;
+               font-weight: normal;
+               color: var(--secondary-color);
+          }
+
+        #group-select { 
+            padding: 8px;
+            border: 1px solid var(--select-border);
+            border-radius: 5px;
+            background-color: var(--select-bg);
+            color: var(--select-text);
+            font-size: 1rem;
+            cursor: pointer;
+            outline: none;
+             flex-shrink: 0; 
+        }
+
+
+        #user-list-toggle-button { 
+             background-color: transparent;
+             color: var(--text-color);
+             border: none;
+             padding: 5px;
+             cursor: pointer;
+             margin-left: 10px; 
+             display: none; 
+              flex-shrink: 0; 
+         }
+
+        @media (max-width: 768px) {
+            #user-list-toggle-button {
+                 display: block; 
+                 order: -1; 
+            }
+        }
+
+         #user-list-toggle-button svg {
+             width: 24px;
+             height: 24px;
+             fill: currentColor;
+         }
+
+
+        #user-list {
+            grid-area: userlist; 
+            width: 200px; 
+            background-color: var(--user-list-bg-color); 
+            padding: 15px;
+            overflow-y: auto;
+            border-left: 1px solid var(--border-color);
+             transition: transform 0.3s ease; 
+
+            @media (max-width: 768px) {
+                 position: fixed; 
+                 top: 0; 
+                 right: -200px; 
+                 bottom: 0; 
+                 width: 200px; 
+                 z-index: 50; 
+                 box-shadow: -5px 0 15px var(--shadow-color); 
+                 border-left: none; 
+                 transform: translateX(0); 
+            }
+        }
+
+         @media (max-width: 768px) {
+             #chat-container.user-list-visible #user-list {
+                 transform: translateX(-200px); 
+             }
+         }
+
+
+        #user-list h4 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        #user-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #user-list li {
+            color: var(--text-color);
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease; 
+        }
+
+         #user-list li:hover {
+             background-color: rgba(255, 255, 255, 0.1);
+         }
+
+        .online-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4caf50; /* Green */
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+         .offline-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #f44336; /* Red */
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .last-seen {
+            font-size: 0.8em;
+            color: var(--secondary-color);
+            display: block; 
+        }
+
+
+        #message-area {
+            grid-area: messages;
+            padding: 20px;
+            overflow-y: auto; 
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 80%;
+            opacity: 0; 
+            transform: translateY(20px); 
+            animation: fadeInSlideUp 0.5s forwards ease; 
+        }
+
+         @keyframes fadeInSlideUp {
+             to {
+                 opacity: 1;
+                 transform: translateY(0);
+             }
+         }
+
+        .my-message {
+            align-self: flex-end; 
+            flex-direction: row-reverse; 
+        }
+
+         .other-message {
+             align-self: flex-start; 
+             flex-direction: row; 
+         }
+
+        .message-avatar {
+             width: 40px;
+             height: 40px;
+             border-radius: 50%; 
+             background-color: var(--secondary-color); 
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             color: white;
+             font-weight: bold;
+             flex-shrink: 0; 
+             overflow: hidden; 
+         }
+
+        .message-avatar img {
+             width: 100%;
+             height: 100%;
+             object-fit: cover;
+             display: block;
+         }
+
+
+        .message-content {
+            background-color: var(--other-message-bg);
+            padding: 12px 18px;
+            border-radius: 20px; 
+            color: var(--text-color);
+            word-break: break-word; 
+            box-shadow: 0 2px 5px var(--shadow-color); 
+            transition: background-color 0.3s ease; 
+            position: relative; 
+        }
+
+         .my-message .message-content {
+             background-color: var(--my-message-bg); 
+         }
+
+         .message-content:hover {
+             background-color: rgba(255, 255, 255, 0.15); 
+         }
+
+
+        .message-sender {
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+
+        .message-text {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .message-image {
+            max-width: 250px; 
+            max-height: 250px;
+            border-radius: 10px; 
+            cursor: pointer;
+            display: block; 
+            transition: opacity 0.5s ease; 
+            object-fit: cover; 
+        }
+
+         .message-image.loading {
+             opacity: 0.5; 
+         }
+
+        /* New styles for image group */
+        .image-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-gap: 5px;
+            margin: 5px 0;
+        }
+
+        .image-group img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .image-group-container {
+            position: relative;
+        }
+
+        .image-group-count {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+
+        /* Audio message styles */
+        .audio-message {
+            width: 250px;
+            background-color: var(--audio-button-bg);
+            border-radius: 20px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .play-pause-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin-right: 10px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .play-pause-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .audio-progress {
+            flex-grow: 1;
+            height: 5px;
+            background-color: var(--audio-progress);
+            border-radius: 5px;
+            margin-right: 10px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .audio-progress:hover {
+            height: 8px;
+        }
+
+        .audio-progress-played {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: var(--audio-progress-played);
+            width: 0%;
+        }
+
+        .audio-duration {
+            font-size: 0.8em;
+            color: white;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .delete-button {
+            position: absolute;
+            top: -8px; 
+            left: -8px; 
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0; 
+            transition: opacity 0.2s ease;
+        }
+
+         .my-message .delete-button {
+            left: auto; 
+            right: -8px; 
+         }
+
+         .message-content:hover .delete-button {
+             opacity: 1; 
+         }
+
+        /* Recording button styles */
+        .recording-button {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .recording-button.recording {
+            background-color: var(--recording-color) !important;
+            animation: pulse 1.5s infinite;
+        }
+
+        .recording-time {
+            position: absolute;
+            color: white;
+            font-size: 0.8em;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .recording-button.recording .recording-time {
+            opacity: 1;
+        }
+
+        .recording-wave {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: var(--recording-wave);
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+
+        .recording-button.recording .recording-wave {
+            animation: wave 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wave {
+            0% { transform: scale(0.8); opacity: 0.7; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+
+        /* في قسم الـ CSS */
+        #input-area {
+            grid-area: input;
+            display: flex;
+            padding: 10px 15px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            gap: 8px;
+            align-items: center;
+            position: relative;
+        }
+
+        #message-input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            font-size: 1rem;
+            outline: none;
+            min-height: 45px;
+            max-height: 120px;
+            resize: none;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        #message-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(94, 107, 140, 0.3);
+        }
+
+        #image-upload-button,
+        #send-button,
+        #record-audio-button {
+            background-color: var(--audio-button-bg);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            min-width: 45px;
+            min-height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        #image-upload-button:hover,
+        #send-button:hover,
+        #record-audio-button:hover {
+            background-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        #image-upload-button:active,
+        #send-button:active,
+        #record-audio-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Recording indicator */
+        .recording-indicator {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .recording-indicator-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .recording-animation {
+            width: 20px;
+            height: 20px;
+            background-color: var(--recording-color);
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        #stop-recording-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: var(--recording-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #stop-recording-button:hover {
+            background-color: #ff1a0a;
+        }
+
+        .recording-visualizer {
+            width: 100%;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            margin: 10px 0;
+        }
+
+        .visualizer-bar {
+            width: 4px;
+            height: 10px;
+            background-color: var(--recording-wave);
+            border-radius: 2px;
+            animation: visualizer 1.5s infinite ease-in-out;
+        }
+
+        @keyframes visualizer {
+            0%, 100% { height: 10px; }
+            50% { height: 20px; }
+        }
+
+        .visualizer-bar:nth-child(1) { animation-delay: 0s; }
+        .visualizer-bar:nth-child(2) { animation-delay: 0.2s; }
+        .visualizer-bar:nth-child(3) { animation-delay: 0.4s; }
+        .visualizer-bar:nth-child(4) { animation-delay: 0.6s; }
+        .visualizer-bar:nth-child(5) { animation-delay: 0.8s; }
+
+        #scroll-to-bottom {
+            position: absolute;
+            bottom: 80px; 
+            right: 20px; 
+            background-color: var(--scroll-button-bg);
+            color: white;
+            border: none;
+            border-radius: 50%; 
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+            opacity: 0; 
+            visibility: hidden;
+            z-index: 10; 
+        }
+
+         #scroll-to-bottom.show {
+             opacity: 1;
+             visibility: visible;
+         }
+
+         #scroll-to-bottom svg {
+             width: 24px;
+             height: 24px;
+             fill: currentColor;
+         }
+
+
+        #image-modal {
+            display: none; 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); 
+            backdrop-filter: blur(5px); 
+            z-index: 100; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+             position: relative; 
+             max-width: 90%;
+             max-height: 90%;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             overflow: hidden; 
+         }
+
+        #modal-image {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; 
+            cursor: grab; 
+        }
+
+         #modal-image.dragging {
+             cursor: grabbing;
+         }
+
+
+        .modal-close,
+        .modal-download {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 110; 
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-close {
+            top: 15px;
+            right: 15px; 
+        }
+         .modal-download {
+             top: 15px;
+             left: 15px; 
+         }
+
+        .modal-close:hover,
+        .modal-download:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        /* Audio recording cancel button */
+        #cancel-recording-button {
+            position: absolute;
+            left: 15px;
+            bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--recording-color);
+            border: none;
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            cursor: pointer;
+            display: none;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        #cancel-recording-button:hover {
+            background-color: rgba(255, 59, 48, 0.2);
+        }
+
+        /* Recording swipe indicator */
+        .swipe-indicator {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--recording-time);
+            font-size: 0.8em;
+            white-space: nowrap;
+            display: none;
+        }
+
+        /* Recording lock indicator */
+        .lock-indicator {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--recording-time);
+            font-size: 0.8em;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 3px 8px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        /* Recording volume indicator */
+        .volume-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-size: 0.8em;
+        }
+
+        .volume-level {
+            width: 30px;
+            height: 3px;
+            background-color: rgba(255, 255, 255, 0.3);
+            margin: 2px 0;
+            position: relative;
+        }
+
+        .volume-level.active {
+            background-color: var(--recording-color);
+        }
+
+        /* Audio message waveform */
+        .audio-waveform {
+            flex-grow: 1;
+            height: 30px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            margin: 0 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .waveform-bar {
+            position: absolute;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--audio-progress-played);
+            transition: height 0.1s ease;
+        }
+
+        /* Audio message playback speed */
+        .playback-speed {
+            position: absolute;
+            top: -25px;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            display: none;
+        }
+
+        /* Audio message seek tooltip */
+        .seek-tooltip {
+            position: absolute;
+            bottom: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            pointer-events: none;
+            display: none;
+        }
+
+        /* Audio message volume control */
+        .volume-control {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .volume-progress {
+            height: 100%;
+            background-color: var(--audio-progress-played);
+            border-radius: 10px;
+            width: 80%;
+        }
+
+        /* Audio message options */
+        .audio-options {
+            position: absolute;
+            top: -30px;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 5px;
+            display: none;
+        }
+
+        .audio-option-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 0.8em;
+            padding: 3px 8px;
+            cursor: pointer;
+        }
+
+        .audio-option-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Recording quality indicator */
+        .quality-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7em;
+        }
+
+        /* Recording microphone test */
+        .mic-test {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            font-size: 0.8em;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+
+        /* Recording permission prompt */
+        .permission-prompt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .permission-prompt button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: var(--recording-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Recording error message */
+        .recording-error {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .recording-error button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: var(--recording-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Recording timer */
+        .recording-timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--recording-time);
+            margin: 0 5px;
+        }
+
+        /* Recording limit warning */
+        .limit-warning {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 59, 48, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: none;
+            z-index: 1000;
+        }
+
+        /* Recording quality options */
+        .quality-options {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .quality-option {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .quality-option:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .quality-option.selected {
+            background-color: var(--recording-color);
+        }
+
+        /* Recording format options */
+        .format-options {
+            position: fixed;
+            bottom: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .format-option {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .format-option:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .format-option.selected {
+            background-color: var(--recording-color);
+        }
+
+        /* Recording size indicator */
+        .size-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7em;
+        }
+
+        /* Recording bitrate indicator */
+        .bitrate-indicator {
+            position: absolute;
+            top: 30px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7em;
+        }
+
+        /* Recording sample rate indicator */
+        .sample-rate-indicator {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7em;
+        }
+
+        /* Recording channels indicator */
+        .channels-indicator {
+            position: absolute;
+            top: 70px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7em;
+        }
+
+        /* Recording settings button */
+        .settings-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* Recording help button */
+        .help-button {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* Recording help content */
+        .help-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            display: none;
+            z-index: 1001;
+        }
+
+        .help-content h3 {
+            margin-top: 0;
+            color: var(--recording-color);
+        }
+
+        .help-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+
+        /* Recording tutorial steps */
+        .tutorial-step {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: none;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .tutorial-step button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: var(--recording-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Recording progress bar */
+        .recording-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .recording-progress-bar {
+            height: 100%;
+            background-color: var(--recording-color);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Recording lock screen */
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            color: white;
+        }
+
+        .lock-screen-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .lock-screen-text {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .lock-screen-button {
+            padding: 10px 20px;
+            background-color: var(--recording-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Recording confirmation */
+        .recording-confirmation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1001;
+            text-align: center;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .confirmation-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .confirm-button {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        .cancel-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Recording preview */
+        .recording-preview {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1001;
+            text-align: center;
+        }
+
+        .preview-audio {
+            margin: 20px 0;
+        }
+
+        .preview-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .preview-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .send-button {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        .retry-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Recording quality meter */
+        .quality-meter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 100px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .quality-level {
+            height: 100%;
+            background-color: var(--recording-color);
+            width: 0%;
+        }
+
+        /* Recording noise reduction */
+        .noise-reduction {
+            position: absolute;
+            top: 30px;
+            left: 10px;
+            width: 100px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .noise-level {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+        }
+
+        /* Recording input level */
+        .input-level {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            width: 100px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .input-meter {
+            height: 100%;
+            background-color: #2196F3;
+            width: 0%;
+        }
+
+        /* Recording output level */
+        .output-level {
+            position: absolute;
+            top: 70px;
+            left: 10px;
+            width: 100px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .output-meter {
+            height: 100%;
+            background-color: #FFC107;
+            width: 0%;
+        }
+
+        /* Recording frequency spectrum */
+        .frequency-spectrum {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            display: flex;
+            align-items: flex-end;
+            padding: 5px;
+        }
+
+        .frequency-bar {
+            flex: 1;
+            background-color: var(--recording-wave);
+            margin: 0 1px;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        /* Recording waveform */
+        .waveform-display {
+            position: absolute;
+            bottom: 70px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .waveform-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Recording time ruler */
+        .time-ruler {
+            position: absolute;
+            bottom: 140px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            color: white;
+            font-size: 0.8em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px;
+        }
+
+        /* Recording markers */
+        .recording-markers {
+            position: absolute;
+            bottom: 170px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .marker {
+            width: 2px;
+            height: 15px;
+            background-color: var(--recording-color);
+            position: absolute;
+        }
+
+        .marker-label {
+            position: absolute;
+            top: -20px;
+            transform: translateX(-50%);
+            font-size: 0.7em;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 2px 5px;
+            border-radius: 5px;
+        }
+
+        /* Recording zoom controls */
+        .zoom-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .zoom-button {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* Recording playhead */
+        .playhead {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background-color: var(--recording-color);
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        /* Recording selection */
+        .selection-range {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background-color: rgba(255, 59, 48, 0.3);
+            z-index: 5;
+        }
+
+        /* Recording toolbar */
+        .recording-toolbar {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 20px;
+            z-index: 10;
+        }
+
+        .toolbar-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .toolbar-button.active {
+            background-color: var(--recording-color);
+        }
+
+        /* Recording transport controls */
+        .transport-controls {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .transport-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        .transport-button.main {
+            width: 60px;
+            height: 60px;
+            background-color: var(--recording-color);
+            font-size: 1.5em;
+        }
+
+        /* Recording mixer */
+        .mixer-controls {
+            position: absolute;
+            right: 10px;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 10;
+        }
+
+        .mixer-track {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mixer-fader {
+            width: 10px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .mixer-handle {
+            position: absolute;
+            left: -5px;
+            width: 20px;
+            height: 10px;
+            background-color: var(--recording-color);
+            border-radius: 5px;
+        }
+
+        .mixer-label {
+            color: white;
+            font-size: 0.7em;
+            width: 30px;
+            text-align: center;
+        }
+
+        /* Recording effects */
+        .effects-panel {
+            position: absolute;
+            right: 10px;
+            top: 300px;
+            width: 150px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 10;
+            display: none;
+        }
+
+        .effect-item {
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            color: white;
+        }
+
+        .effect-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Recording automation */
+        .automation-lane {
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            height: 30px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+
+        .automation-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: var(--recording-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Recording timeline */
+        .timeline {
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .timeline-track {
+            height: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .timeline-clip {
+            position: absolute;
+            height: 100%;
+            background-color: var(--recording-wave);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .clip-label {
+            font-size: 0.7em;
+            color: white;
+            padding: 2px 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Recording regions */
+        .region {
+            position: absolute;
+            height: 100%;
+            background-color: rgba(255, 59, 48, 0.3);
+            border-left: 2px solid var(--recording-color);
+            border-right: 2px solid var(--recording-color);
+        }
+
+        /* Recording snap controls */
+        .snap-controls {
+            position: absolute;
+            bottom: 130px;
+            left: 10px;
+            display: flex;
+            gap: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px;
+            border-radius: 5px;
+            z-index: 10;
+        }
+
+        .snap-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 3px 6px;
+            font-size: 0.7em;
+            cursor: pointer;
+        }
+
+        .snap-button.active {
+            background-color: var(--recording-color);
+        }
+
+        /* Recording grid */
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .grid-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .grid-line.major {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Recording ruler */
+        .ruler {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 0.7em;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+        }
+
+        /* Recording cursor */
+        .cursor {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--recording-color);
+            z-index: 20;
+        }
+
+        /* Recording scrollbar */
+        .scrollbar {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            z-index: 30;
+        }
+
+        .scrollbar-thumb {
+            position: absolute;
+            width: 100%;
+            background-color: var(--recording-wave);
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Recording minimap */
+        .minimap {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            width: 200px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .minimap-viewport {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--recording-color);
+        }
+
+        /* Recording status bar */
+        .status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 0.7em;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 10;
+        }
+
+        .status-item {
+            margin-right: 15px;
+        }
+
+        /* Recording tooltip */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+
+        /* Recording context menu */
+        .context-menu {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 5px;
+            padding: 5px 0;
+            z-index: 200;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-item {
+            padding: 5px 15px;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background-color: var(--recording-color);
+        }
+
+        .menu-separator {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 5px 0;
+        }
+
+        /* Recording modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            margin-bottom: 15px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-primary {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        .modal-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Recording toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 1000;
+            display: none;
+            animation: fadeInOut 3s ease;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            10%, 90% { opacity: 1; }
+        }
+
+        /* Recording spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--recording-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Recording progress */
+        .progress-container {
+            width: 100%;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--recording-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Recording dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 5px;
+            padding: 5px 0;
+            z-index: 10;
+            display: none;
+            min-width: 150px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .dropdown-item {
+            padding: 5px 15px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--recording-color);
+        }
+
+        /* Recording tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            color: var(--text-color);
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--recording-color);
+            color: var(--recording-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Recording accordion */
+        .accordion-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .accordion-header {
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .accordion-content {
+            padding: 10px;
+            display: none;
+        }
+
+        .accordion-item.active .accordion-content {
+            display: block;
+        }
+
+        /* Recording slider */
+        .slider {
+            width: 100%;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 15px;
+            height: 15px;
+            background-color: var(--recording-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: var(--recording-color);
+            border-radius: 5px;
+        }
+
+        /* Recording toggle */
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-input:checked + .toggle-slider {
+            background-color: var(--recording-color);
+        }
+
+        .toggle-input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Recording input */
+        .input-field {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--input-text);
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        /* Recording label */
+        .input-label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        /* Recording checkbox */
+        .checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-input {
+            margin-right: 8px;
+        }
+
+        .checkbox-label {
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        /* Recording radio */
+        .radio {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .radio-input {
+            margin-right: 8px;
+        }
+
+        .radio-label {
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        /* Recording select */
+        .select {
+            position: relative;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .select-input {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--input-text);
+            font-size: 0.9em;
+            appearance: none;
+        }
+
+        .select-arrow {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        /* Recording textarea */
+        .textarea {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--input-text);
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Recording button */
+        .button {
+            padding: 8px 16px;
+            background-color: var(--recording-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #ff1a0a;
+        }
+
+        .button-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .button-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Recording icon */
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Recording badge */
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            background-color: var(--recording-color);
+            color: white;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        /* Recording alert */
+        .alert {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .alert-success {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+
+        .alert-error {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+        }
+
+        .alert-warning {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+        }
+
+        .alert-info {
+            background-color: rgba(33, 150, 243, 0.2);
+            color: #2196F3;
+        }
+
+        /* Recording card */
+        .card {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .card-content {
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        /* Recording list */
+        .list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .list-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Recording table */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .table th, .table td {
+            padding: 8px 12px;
+            text-align: right;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .table th {
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Recording pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .page-item {
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .page-item.active {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        /* Recording breadcrumb */
+        .breadcrumb {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .breadcrumb-item {
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .breadcrumb-separator {
+            color: var(--secondary-color);
+        }
+
+        /* Recording steps */
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .step.active .step-number {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        .step-title {
+            color: var(--text-color);
+            font-size: 0.8em;
+        }
+
+        .steps-line {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+
+        /* Recording progress steps */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .progress-step-number {
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .progress-step.active .progress-step-number {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        .progress-step.completed .progress-step-number {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .progress-step-title {
+            color: var(--text-color);
+            font-size: 0.8em;
+        }
+
+        .progress-steps-line {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+
+        .progress-steps-line-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: var(--recording-color);
+        }
+
+        /* Recording avatar */
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            overflow: hidden;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Recording divider */
+        .divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 15px 0;
+        }
+
+        /* Recording empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        .empty-icon {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .empty-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .empty-description {
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        /* Recording skeleton */
+        .skeleton {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .skeleton-text {
+            height: 12px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        /* Recording tooltip */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+
+        /* Recording popover */
+        .popover {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 5px;
+            padding: 10px;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            max-width: 200px;
+        }
+
+        .popover-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        /* Recording modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal-dialog {
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            margin-bottom: 15px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-primary {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        .modal-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Recording carousel */
+        .carousel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .carousel-inner {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-item {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .carousel-control {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .carousel-control.prev {
+            left: 10px;
+        }
+
+        .carousel-control.next {
+            right: 10px;
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .carousel-indicator {
+            width: 10px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .carousel-indicator.active {
+            background-color: var(--recording-color);
+        }
+
+        /* Recording tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            color: var(--text-color);
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--recording-color);
+            color: var(--recording-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Recording accordion */
+        .accordion {
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .accordion-header {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-color);
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .accordion-content {
+            padding: 15px;
+            display: none;
+        }
+
+        .accordion-item.active .accordion-content {
+            display: block;
+        }
+
+        /* Recording collapse */
+        .collapse {
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .collapse-header {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-color);
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .collapse-content {
+            padding: 15px;
+            display: none;
+        }
+
+        .collapse.active .collapse-content {
+            display: block;
+        }
+
+        /* Recording dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 5px;
+            padding: 5px 0;
+            z-index: 10;
+            display: none;
+            min-width: 150px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .dropdown-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--recording-color);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 5px 0;
+        }
+
+        /* Recording breadcrumb */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .breadcrumb-item {
+            color: var(--text-color);
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--recording-color);
+        }
+
+        .breadcrumb-separator {
+            color: var(--secondary-color);
+            margin: 0 5px;
+        }
+
+        /* Recording pagination */
+        .pagination {
+            display: flex;
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .page-item {
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .page-item.active {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        .page-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Recording steps */
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .step.active .step-number {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .step-title {
+            color: var(--text-color);
+            font-size: 0.8em;
+        }
+
+        .steps-line {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+
+        .steps-line-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: var(--recording-color);
+        }
+
+        /* Recording progress */
+        .progress {
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--recording-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Recording spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--recording-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Recording toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 1000;
+            display: none;
+            animation: fadeInOut 3s ease;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            10%, 90% { opacity: 1; }
+        }
+
+        /* Recording tooltip */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+
+        .tooltip-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        /* Recording popover */
+        .popover {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 5px;
+            padding: 10px;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            max-width: 200px;
+        }
+
+        .popover-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        /* Recording modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal-dialog {
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            margin-bottom: 15px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-primary {
+            background-color: var(--recording-color);
+            color: white;
+        }
+
+        .modal-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Recording carousel */
+        .carousel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .carousel-inner {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-item {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .carousel-control {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .carousel-control.prev {
+            left: 10px;
+        }
+
+        .carousel-control.next {
+            right: 10px;
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .carousel-indicator {
+            width: 10px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .carousel-indicator.active {
+            background-color: var(--recording-color);
+        }
+
+        /* Recording tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            color: var(--text-color);
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--recording-color);
+            color: var(--recording-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Recording accordion */
+        .accordion {
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .accordion-header {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-color);
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .accordion-content {
+            padding: 15px;
+            display: none;
+        }
+
+        .accordion-item.active .accordion-content {
+            display: block;
+        }
+
+        /* Recording collapse */
+        .collapse {
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .collapse-header {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-color);
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .collapse-content {
+            padding: 15px;
+            display: none;
+        }
+
+        .collapse.active .collapse-content {
+            display: block;
+        }
+
+        /* Recording dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 5px;
+            padding: 5px 0;
+            z-index: 10;
+            display: none;
+            min-width: 150px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .dropdown-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--recording-color);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 5px 0;
+        }
+
+        /* تعديلات للشاشات الصغيرة */
+        @media (max-width: 480px) {
+            #input-area {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            #message-input {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+                min-height: 40px;
+            }
+            
+            #image-upload-button,
+            #send-button,
+            #record-audio-button {
+                width: 40px;
+                height: 40px;
+                min-width: 40px;
+                min-height: 40px;
+            }
+            
+            #image-upload-button svg,
+            #send-button svg,
+            #record-audio-button svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-container">
+        <h1>Mahmoud المبرمج</h1>
+        <h2>تسجيل الدخول</h2>
+        <input type="text" id="login-code" placeholder="الكود">
+        <input type="text" id="login-name" placeholder="الاسم">
+        <button id="login-button">دخول</button>
+        <p id="login-error"></p>
+         <p id="firebase-chat-init-error" style="color: var(--login-error-color); margin-top: 10px;"></p>
+    </div>
+
+    <div id="chat-container">
+        <div id="chat-header">
+             <button id="user-list-toggle-button" title="تبديل قائمة المستخدمين">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 6h16a1 1 0 0 0 0-2H4a1 1 0 0 0 0 2zm16 7H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2zm0 7H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2z" fill="currentColor"/></svg>
+             </button>
+             <select id="group-select"></select> <div class="header-title">
+                 <span id="group-name"></span> <span id="current-username"></span> </div>
+             </div>
+         <div id="user-list">
+             <h4>الأعضاء</h4>
+             <ul>
+                 </ul>
+         </div>
+        <div id="message-area">
+            </div>
+        <div id="input-area">
+            <input type="text" id="message-input" placeholder="اكتب رسالة...">
+            <input type="file" id="image-upload-input" accept="image/*" multiple style="display: none;">
+            <button id="image-upload-button" title="إرسال صورة">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm4.5 8a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM19 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="currentColor"/></svg>
+            </button>
+            <button id="record-audio-button" class="recording-button" title="تسجيل صوتي">
+                <div class="recording-wave"></div>
+                <span class="recording-time"></span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" fill="currentColor"/><path d="M19 10v1a7 7 0 0 1-14 0v-1h-2v1a9 9 0 0 0 8 8.94V21h-2v2h6v-2h-2v-1.06A9 9 0 0 0 21 11v-1h-2z" fill="currentColor"/></svg>
+            </button>
+            <button id="send-button" title="إرسال">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/></svg>
+            </button>
+            <button id="cancel-recording-button">إلغاء التسجيل</button>
+            <div class="swipe-indicator">اسحب لأعلى لإلغاء التسجيل</div>
+            <div class="lock-indicator">التسجيل مؤمن</div>
+        </div>
+
+        <div class="recording-indicator">
+            <div class="recording-indicator-content">
+                <div class="recording-visualizer">
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                </div>
+                <span>جارٍ التسجيل...</span>
+                <span class="recording-animation"></span>
+                <span class="recording-timer">00:00</span>
+                <button id="stop-recording-button">إيقاف وإرسال</button>
+                <div class="recording-progress">
+                    <div class="recording-progress-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <button id="scroll-to-bottom" title="انزل للأسفل">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 16.414l-4.707-4.707a1 1 0 0 0-1.414 1.414l5.414 5.414a1 1 0 0 0 1.414 0l5.414-5.414a1 1 0 0 0-1.414-1.414L12 16.414z" fill="currentColor"/></svg>
+        </button>
+    </div>
+
+     <div id="image-modal">
+         <div class="modal-content">
+             <img id="modal-image" src="img1.jpg" alt="صورة مكبّرة">
+             <button class="modal-close">&times;</button>
+             <button class="modal-download" title="تحميل الصورة">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-7 11a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3h-4v3z" fill="currentColor"/></svg>
+             </button>
+         </div>
+     </div>
+
+     <div class="volume-indicator">
+         <div class="volume-level"></div>
+         <div class="volume-level"></div>
+         <div class="volume-level"></div>
+         <div class="volume-level"></div>
+         <div class="volume-level"></div>
+         <div class="volume-level"></div>
+         <div class="volume-level"></div>
+         <div class="volume-level"></div>
+     </div>
+
+     <div class="recording-error">
+         <h3>خطأ في التسجيل الصوتي</h3>
+         <p>لا يمكن الوصول إلى الميكروفون. يرجى التحقق من الأذونات وإعادة المحاولة.</p>
+         <button id="retry-recording-button">إعادة المحاولة</button>
+     </div>
+
+     <div class="limit-warning">
+         لقد وصلت إلى الحد الأقصى لمدة التسجيل (5 دقائق)
+     </div>
+
+     <div class="quality-options">
+         <div class="quality-option selected">جودة عالية</div>
+         <div class="quality-option">جودة متوسطة</div>
+         <div class="quality-option">جودة منخفضة</div>
+     </div>
+
+     <div class="format-options">
+         <div class="format-option selected">MP3</div>
+         <div class="format-option">WAV</div>
+         <div class="format-option">OGG</div>
+     </div>
+
+     <div class="help-content">
+         <button class="help-close">&times;</button>
+         <h3>مساعدة تسجيل الصوت</h3>
+         <p>1. اضغط مع الاستمرار على زر التسجيل لبدء التسجيل</p>
+         <p>2. حرر الزر لإيقاف التسجيل وإرساله</p>
+         <p>3. اسحب لأعلى أثناء التسجيل لإلغائه</p>
+         <p>4. اضغط على زر القفل لتأمين التسجيل</p>
+     </div>
+
+     <div class="tutorial-step">
+         <p>اضغط مع الاستمرار على الزر لبدء التسجيل</p>
+         <button id="got-it-button">فهمت!</button>
+     </div>
+
+     <div class="lock-screen">
+         <div class="lock-screen-icon">🔒</div>
+         <div class="lock-screen-text">التسجيل مؤمن - اضغط لإلغاء القفل</div>
+         <button class="lock-screen-button">إلغاء القفل</button>
+     </div>
+
+     <div class="recording-confirmation">
+         <h3>هل تريد إرسال هذا التسجيل؟</h3>
+         <p>مدة التسجيل: <span class="confirmation-duration">00:30</span></p>
+         <div class="confirmation-buttons">
+             <button class="confirmation-button confirm-button">إرسال</button>
+             <button class="confirmation-button cancel-button">إلغاء</button>
+         </div>
+     </div>
+
+     <div class="recording-preview">
+         <h3>معاينة التسجيل</h3>
+         <audio class="preview-audio" controls></audio>
+         <div class="preview-buttons">
+             <button class="preview-button send-button">إرسال</button>
+             <button class="preview-button retry-button">إعادة التسجيل</button>
+         </div>
+     </div>
+
+    <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-storage-compat.js"></script>
+     <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-analytics-compat.js"></script>
+     
+     <script src="script1.js"></script>
+   </body>
+   </html>
