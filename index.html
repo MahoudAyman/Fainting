@@ -43,9 +43,6 @@
             --audio-progress: #4a4e69;
             --audio-progress-played: #5e6b8c;
             --audio-button-bg: #5e6b8c;
-            --recording-color: #ff3b30;
-            --recording-wave: #ff5e52;
-            --recording-time: #ff8a80;
         }
 
         /* CSS Feature 1: Dark Mode (Default) */
@@ -454,17 +451,6 @@
             font-size: 1.2em;
             cursor: pointer;
             margin-right: 10px;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background-color 0.2s;
-        }
-
-        .play-pause-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .audio-progress {
@@ -475,11 +461,6 @@
             margin-right: 10px;
             position: relative;
             overflow: hidden;
-            cursor: pointer;
-        }
-
-        .audio-progress:hover {
-            height: 8px;
         }
 
         .audio-progress-played {
@@ -494,8 +475,6 @@
         .audio-duration {
             font-size: 0.8em;
             color: white;
-            min-width: 40px;
-            text-align: center;
         }
 
         .delete-button {
@@ -526,60 +505,8 @@
              opacity: 1; 
          }
 
-        /* Recording button styles */
-        .recording-button {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
 
-        .recording-button.recording {
-            background-color: var(--recording-color) !important;
-            animation: pulse 1.5s infinite;
-        }
-
-        .recording-time {
-            position: absolute;
-            color: white;
-            font-size: 0.8em;
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .recording-button.recording .recording-time {
-            opacity: 1;
-        }
-
-        .recording-wave {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background-color: var(--recording-wave);
-            opacity: 0;
-            transform: scale(0);
-            transition: all 0.3s ease;
-        }
-
-        .recording-button.recording .recording-wave {
-            animation: wave 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes wave {
-            0% { transform: scale(0.8); opacity: 0.7; }
-            100% { transform: scale(1.3); opacity: 0; }
-        }
-
-        /* في قسم الـ CSS */
+       /* في قسم الـ CSS */
         #input-area {
             grid-area: input;
             display: flex;
@@ -588,7 +515,6 @@
             background-color: var(--bg-color);
             gap: 8px;
             align-items: center;
-            position: relative;
         }
 
         #message-input {
@@ -604,12 +530,6 @@
             max-height: 120px;
             resize: none;
             overflow-y: auto;
-            transition: all 0.3s ease;
-        }
-
-        #message-input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(94, 107, 140, 0.3);
         }
 
         #image-upload-button,
@@ -627,14 +547,18 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease; /* تم تعديل الانتقال هنا */
             flex-shrink: 0;
-            position: relative;
+        }
+        
+        #record-audio-button.recording { /* كلاس جديد للتسجيل */
+            background-color: red;
+            color: white;
         }
 
         #image-upload-button:hover,
         #send-button:hover,
-        #record-audio-button:hover {
+        #record-audio-button:hover:not(.recording) { /* تعديل حتى لا يتغير اللون عند التحويم أثناء التسجيل */
             background-color: var(--primary-color);
             transform: scale(1.05);
         }
@@ -645,6 +569,35 @@
             transform: scale(0.95);
         }
 
+        /* تعديلات للشاشات الصغيرة */
+        @media (max-width: 480px) {
+            #input-area {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            #message-input {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+                min-height: 40px;
+            }
+            
+            #image-upload-button,
+            #send-button,
+            #record-audio-button {
+                width: 40px;
+                height: 40px;
+                min-width: 40px;
+                min-height: 40px;
+            }
+            
+            #image-upload-button svg,
+            #send-button svg,
+            #record-audio-button svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
         /* Recording indicator */
         .recording-indicator {
             display: none;
@@ -658,70 +611,23 @@
             border-radius: 10px;
             z-index: 1000;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .recording-indicator-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
         }
 
         .recording-animation {
             width: 20px;
             height: 20px;
-            background-color: var(--recording-color);
+            background-color: red;
             border-radius: 50%;
             display: inline-block;
             margin-left: 10px;
             animation: pulse 1.5s infinite;
         }
 
-        #stop-recording-button {
-            margin-top: 10px;
-            padding: 8px 16px;
-            background-color: var(--recording-color);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-size: 0.9em;
-            cursor: pointer;
-            transition: background-color 0.3s;
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
         }
-
-        #stop-recording-button:hover {
-            background-color: #ff1a0a;
-        }
-
-        .recording-visualizer {
-            width: 100%;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            margin: 10px 0;
-        }
-
-        .visualizer-bar {
-            width: 4px;
-            height: 10px;
-            background-color: var(--recording-wave);
-            border-radius: 2px;
-            animation: visualizer 1.5s infinite ease-in-out;
-        }
-
-        @keyframes visualizer {
-            0%, 100% { height: 10px; }
-            50% { height: 20px; }
-        }
-
-        .visualizer-bar:nth-child(1) { animation-delay: 0s; }
-        .visualizer-bar:nth-child(2) { animation-delay: 0.2s; }
-        .visualizer-bar:nth-child(3) { animation-delay: 0.4s; }
-        .visualizer-bar:nth-child(4) { animation-delay: 0.6s; }
-        .visualizer-bar:nth-child(5) { animation-delay: 0.8s; }
 
         #scroll-to-bottom {
             position: absolute;
@@ -825,2706 +731,6 @@
         .modal-download:hover {
             background-color: rgba(0, 0, 0, 0.7);
         }
-
-        /* Audio recording cancel button */
-        #cancel-recording-button {
-            position: absolute;
-            left: 15px;
-            bottom: 15px;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--recording-color);
-            border: none;
-            border-radius: 20px;
-            padding: 5px 10px;
-            font-size: 0.8em;
-            cursor: pointer;
-            display: none;
-            z-index: 10;
-            transition: all 0.3s ease;
-        }
-
-        #cancel-recording-button:hover {
-            background-color: rgba(255, 59, 48, 0.2);
-        }
-
-        /* Recording swipe indicator */
-        .swipe-indicator {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: var(--recording-time);
-            font-size: 0.8em;
-            white-space: nowrap;
-            display: none;
-        }
-
-        /* Recording lock indicator */
-        .lock-indicator {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: var(--recording-time);
-            font-size: 0.8em;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 3px 8px;
-            border-radius: 10px;
-            display: none;
-        }
-
-        /* Recording volume indicator */
-        .volume-indicator {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 50%;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-            font-size: 0.8em;
-        }
-
-        .volume-level {
-            width: 30px;
-            height: 3px;
-            background-color: rgba(255, 255, 255, 0.3);
-            margin: 2px 0;
-            position: relative;
-        }
-
-        .volume-level.active {
-            background-color: var(--recording-color);
-        }
-
-        /* Audio message waveform */
-        .audio-waveform {
-            flex-grow: 1;
-            height: 30px;
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 15px;
-            margin: 0 10px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .waveform-bar {
-            position: absolute;
-            bottom: 0;
-            width: 2px;
-            background-color: var(--audio-progress-played);
-            transition: height 0.1s ease;
-        }
-
-        /* Audio message playback speed */
-        .playback-speed {
-            position: absolute;
-            top: -25px;
-            right: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7em;
-            display: none;
-        }
-
-        /* Audio message seek tooltip */
-        .seek-tooltip {
-            position: absolute;
-            bottom: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 3px 8px;
-            border-radius: 5px;
-            font-size: 0.8em;
-            pointer-events: none;
-            display: none;
-        }
-
-        /* Audio message volume control */
-        .volume-control {
-            position: absolute;
-            bottom: -30px;
-            left: 0;
-            width: 100%;
-            height: 20px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-            display: none;
-        }
-
-        .volume-progress {
-            height: 100%;
-            background-color: var(--audio-progress-played);
-            border-radius: 10px;
-            width: 80%;
-        }
-
-        /* Audio message options */
-        .audio-options {
-            position: absolute;
-            top: -30px;
-            right: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 15px;
-            padding: 5px;
-            display: none;
-        }
-
-        .audio-option-button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 0.8em;
-            padding: 3px 8px;
-            cursor: pointer;
-        }
-
-        .audio-option-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Recording quality indicator */
-        .quality-indicator {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.7em;
-        }
-
-        /* Recording microphone test */
-        .mic-test {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            color: white;
-            font-size: 0.8em;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 3px 8px;
-            border-radius: 10px;
-        }
-
-        /* Recording permission prompt */
-        .permission-prompt {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            flex-direction: column;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .permission-prompt button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: var(--recording-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* Recording error message */
-        .recording-error {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            flex-direction: column;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .recording-error button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: var(--recording-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* Recording timer */
-        .recording-timer {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: var(--recording-time);
-            margin: 0 5px;
-        }
-
-        /* Recording limit warning */
-        .limit-warning {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 59, 48, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            display: none;
-            z-index: 1000;
-        }
-
-        /* Recording quality options */
-        .quality-options {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 10px;
-            display: none;
-            z-index: 1000;
-        }
-
-        .quality-option {
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .quality-option:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .quality-option.selected {
-            background-color: var(--recording-color);
-        }
-
-        /* Recording format options */
-        .format-options {
-            position: fixed;
-            bottom: 150px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 10px;
-            display: none;
-            z-index: 1000;
-        }
-
-        .format-option {
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .format-option:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .format-option.selected {
-            background-color: var(--recording-color);
-        }
-
-        /* Recording size indicator */
-        .size-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.7em;
-        }
-
-        /* Recording bitrate indicator */
-        .bitrate-indicator {
-            position: absolute;
-            top: 30px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.7em;
-        }
-
-        /* Recording sample rate indicator */
-        .sample-rate-indicator {
-            position: absolute;
-            top: 50px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.7em;
-        }
-
-        /* Recording channels indicator */
-        .channels-indicator {
-            position: absolute;
-            top: 70px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.7em;
-        }
-
-        /* Recording settings button */
-        .settings-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-        /* Recording help button */
-        .help-button {
-            position: absolute;
-            top: 50px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-        /* Recording help content */
-        .help-content {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 80%;
-            max-height: 80%;
-            overflow-y: auto;
-            display: none;
-            z-index: 1001;
-        }
-
-        .help-content h3 {
-            margin-top: 0;
-            color: var(--recording-color);
-        }
-
-        .help-close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2em;
-            cursor: pointer;
-        }
-
-        /* Recording tutorial steps */
-        .tutorial-step {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            display: none;
-            z-index: 1000;
-            text-align: center;
-        }
-
-        .tutorial-step button {
-            margin-top: 10px;
-            padding: 5px 10px;
-            background-color: var(--recording-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* Recording progress bar */
-        .recording-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .recording-progress-bar {
-            height: 100%;
-            background-color: var(--recording-color);
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-
-        /* Recording lock screen */
-        .lock-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            flex-direction: column;
-            color: white;
-        }
-
-        .lock-screen-icon {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .lock-screen-text {
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-
-        .lock-screen-button {
-            padding: 10px 20px;
-            background-color: var(--recording-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* Recording confirmation */
-        .recording-confirmation {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            display: none;
-            z-index: 1001;
-            text-align: center;
-        }
-
-        .confirmation-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .confirmation-button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .confirm-button {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        .cancel-button {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        /* Recording preview */
-        .recording-preview {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            display: none;
-            z-index: 1001;
-            text-align: center;
-        }
-
-        .preview-audio {
-            margin: 20px 0;
-        }
-
-        .preview-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .preview-button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .send-button {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        .retry-button {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        /* Recording quality meter */
-        .quality-meter {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 100px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .quality-level {
-            height: 100%;
-            background-color: var(--recording-color);
-            width: 0%;
-        }
-
-        /* Recording noise reduction */
-        .noise-reduction {
-            position: absolute;
-            top: 30px;
-            left: 10px;
-            width: 100px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .noise-level {
-            height: 100%;
-            background-color: #4CAF50;
-            width: 0%;
-        }
-
-        /* Recording input level */
-        .input-level {
-            position: absolute;
-            top: 50px;
-            left: 10px;
-            width: 100px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .input-meter {
-            height: 100%;
-            background-color: #2196F3;
-            width: 0%;
-        }
-
-        /* Recording output level */
-        .output-level {
-            position: absolute;
-            top: 70px;
-            left: 10px;
-            width: 100px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .output-meter {
-            height: 100%;
-            background-color: #FFC107;
-            width: 0%;
-        }
-
-        /* Recording frequency spectrum */
-        .frequency-spectrum {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            width: calc(100% - 20px);
-            height: 50px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            display: flex;
-            align-items: flex-end;
-            padding: 5px;
-        }
-
-        .frequency-bar {
-            flex: 1;
-            background-color: var(--recording-wave);
-            margin: 0 1px;
-            border-radius: 2px;
-            transition: height 0.1s ease;
-        }
-
-        /* Recording waveform */
-        .waveform-display {
-            position: absolute;
-            bottom: 70px;
-            left: 10px;
-            width: calc(100% - 20px);
-            height: 60px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .waveform-canvas {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Recording time ruler */
-        .time-ruler {
-            position: absolute;
-            bottom: 140px;
-            left: 10px;
-            width: calc(100% - 20px);
-            height: 20px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            color: white;
-            font-size: 0.8em;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 5px;
-        }
-
-        /* Recording markers */
-        .recording-markers {
-            position: absolute;
-            bottom: 170px;
-            left: 10px;
-            width: calc(100% - 20px);
-            height: 20px;
-            display: flex;
-            align-items: center;
-        }
-
-        .marker {
-            width: 2px;
-            height: 15px;
-            background-color: var(--recording-color);
-            position: absolute;
-        }
-
-        .marker-label {
-            position: absolute;
-            top: -20px;
-            transform: translateX(-50%);
-            font-size: 0.7em;
-            color: white;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 2px 5px;
-            border-radius: 5px;
-        }
-
-        /* Recording zoom controls */
-        .zoom-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .zoom-button {
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        /* Recording playhead */
-        .playhead {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 2px;
-            height: 100%;
-            background-color: var(--recording-color);
-            transform: translateX(-50%);
-            z-index: 10;
-        }
-
-        /* Recording selection */
-        .selection-range {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            background-color: rgba(255, 59, 48, 0.3);
-            z-index: 5;
-        }
-
-        /* Recording toolbar */
-        .recording-toolbar {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 20px;
-            z-index: 10;
-        }
-
-        .toolbar-button {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .toolbar-button.active {
-            background-color: var(--recording-color);
-        }
-
-        /* Recording transport controls */
-        .transport-controls {
-            position: absolute;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 15px;
-            z-index: 10;
-        }
-
-        .transport-button {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-size: 1.2em;
-        }
-
-        .transport-button.main {
-            width: 60px;
-            height: 60px;
-            background-color: var(--recording-color);
-            font-size: 1.5em;
-        }
-
-        /* Recording mixer */
-        .mixer-controls {
-            position: absolute;
-            right: 10px;
-            top: 100px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 10px;
-            z-index: 10;
-        }
-
-        .mixer-track {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .mixer-fader {
-            width: 10px;
-            height: 80px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .mixer-handle {
-            position: absolute;
-            left: -5px;
-            width: 20px;
-            height: 10px;
-            background-color: var(--recording-color);
-            border-radius: 5px;
-        }
-
-        .mixer-label {
-            color: white;
-            font-size: 0.7em;
-            width: 30px;
-            text-align: center;
-        }
-
-        /* Recording effects */
-        .effects-panel {
-            position: absolute;
-            right: 10px;
-            top: 300px;
-            width: 150px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 10px;
-            z-index: 10;
-            display: none;
-        }
-
-        .effect-item {
-            padding: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8em;
-            color: white;
-        }
-
-        .effect-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Recording automation */
-        .automation-lane {
-            position: absolute;
-            left: 10px;
-            right: 10px;
-            height: 30px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-        }
-
-        .automation-point {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background-color: var(--recording-color);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        /* Recording timeline */
-        .timeline {
-            position: absolute;
-            left: 10px;
-            right: 10px;
-            height: 100px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .timeline-track {
-            height: 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-
-        .timeline-clip {
-            position: absolute;
-            height: 100%;
-            background-color: var(--recording-wave);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .clip-label {
-            font-size: 0.7em;
-            color: white;
-            padding: 2px 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Recording regions */
-        .region {
-            position: absolute;
-            height: 100%;
-            background-color: rgba(255, 59, 48, 0.3);
-            border-left: 2px solid var(--recording-color);
-            border-right: 2px solid var(--recording-color);
-        }
-
-        /* Recording snap controls */
-        .snap-controls {
-            position: absolute;
-            bottom: 130px;
-            left: 10px;
-            display: flex;
-            gap: 5px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 5px;
-            border-radius: 5px;
-            z-index: 10;
-        }
-
-        .snap-button {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 3px 6px;
-            font-size: 0.7em;
-            cursor: pointer;
-        }
-
-        .snap-button.active {
-            background-color: var(--recording-color);
-        }
-
-        /* Recording grid */
-        .grid-lines {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .grid-line {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 1px;
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        .grid-line.major {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Recording ruler */
-        .ruler {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 20px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            font-size: 0.7em;
-            display: flex;
-            align-items: center;
-            padding-left: 10px;
-        }
-
-        /* Recording cursor */
-        .cursor {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background-color: var(--recording-color);
-            z-index: 20;
-        }
-
-        /* Recording scrollbar */
-        .scrollbar {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 10px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            z-index: 30;
-        }
-
-        .scrollbar-thumb {
-            position: absolute;
-            width: 100%;
-            background-color: var(--recording-wave);
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* Recording minimap */
-        .minimap {
-            position: absolute;
-            right: 10px;
-            bottom: 10px;
-            width: 200px;
-            height: 60px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            overflow: hidden;
-            z-index: 10;
-        }
-
-        .minimap-viewport {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--recording-color);
-        }
-
-        /* Recording status bar */
-        .status-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 20px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            font-size: 0.7em;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-            z-index: 10;
-        }
-
-        .status-item {
-            margin-right: 15px;
-        }
-
-        /* Recording tooltip */
-        .tooltip {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8em;
-            pointer-events: none;
-            z-index: 100;
-            display: none;
-        }
-
-        /* Recording context menu */
-        .context-menu {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            border-radius: 5px;
-            padding: 5px 0;
-            z-index: 200;
-            display: none;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .menu-item {
-            padding: 5px 15px;
-            cursor: pointer;
-        }
-
-        .menu-item:hover {
-            background-color: var(--recording-color);
-        }
-
-        .menu-separator {
-            height: 1px;
-            background-color: rgba(255, 255, 255, 0.1);
-            margin: 5px 0;
-        }
-
-        /* Recording modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background-color: var(--bg-color);
-            border-radius: 10px;
-            padding: 20px;
-            max-width: 80%;
-            max-height: 80%;
-            overflow-y: auto;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .modal-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: var(--text-color);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.5em;
-            cursor: pointer;
-        }
-
-        .modal-body {
-            margin-bottom: 15px;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .modal-button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .modal-primary {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        .modal-secondary {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        /* Recording toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            z-index: 1000;
-            display: none;
-            animation: fadeInOut 3s ease;
-        }
-
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; }
-            10%, 90% { opacity: 1; }
-        }
-
-        /* Recording spinner */
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--recording-color);
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Recording progress */
-        .progress-container {
-            width: 100%;
-            height: 5px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background-color: var(--recording-color);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        /* Recording dropdown */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-toggle {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: rgba(0, 0, 0, 0.9);
-            border-radius: 5px;
-            padding: 5px 0;
-            z-index: 10;
-            display: none;
-            min-width: 150px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .dropdown-item {
-            padding: 5px 15px;
-            cursor: pointer;
-            color: white;
-        }
-
-        .dropdown-item:hover {
-            background-color: var(--recording-color);
-        }
-
-        /* Recording tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 15px;
-        }
-
-        .tab {
-            padding: 8px 15px;
-            cursor: pointer;
-            color: var(--text-color);
-            border-bottom: 2px solid transparent;
-        }
-
-        .tab.active {
-            border-bottom-color: var(--recording-color);
-            color: var(--recording-color);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Recording accordion */
-        .accordion-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .accordion-header {
-            padding: 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-color);
-        }
-
-        .accordion-content {
-            padding: 10px;
-            display: none;
-        }
-
-        .accordion-item.active .accordion-content {
-            display: block;
-        }
-
-        /* Recording slider */
-        .slider {
-            width: 100%;
-            height: 5px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            position: relative;
-            margin: 15px 0;
-        }
-
-        .slider-handle {
-            position: absolute;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 15px;
-            height: 15px;
-            background-color: var(--recording-color);
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .slider-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background-color: var(--recording-color);
-            border-radius: 5px;
-        }
-
-        /* Recording toggle */
-        .toggle {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
-        }
-
-        .toggle-input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            border-radius: 50%;
-            transition: transform 0.3s;
-        }
-
-        .toggle-input:checked + .toggle-slider {
-            background-color: var(--recording-color);
-        }
-
-        .toggle-input:checked + .toggle-slider:before {
-            transform: translateX(20px);
-        }
-
-        /* Recording input */
-        .input-field {
-            width: 100%;
-            padding: 8px 12px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            color: var(--input-text);
-            font-size: 0.9em;
-            margin-bottom: 10px;
-        }
-
-        /* Recording label */
-        .input-label {
-            display: block;
-            margin-bottom: 5px;
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        /* Recording checkbox */
-        .checkbox {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
-        .checkbox-input {
-            margin-right: 8px;
-        }
-
-        .checkbox-label {
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        /* Recording radio */
-        .radio {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
-        .radio-input {
-            margin-right: 8px;
-        }
-
-        .radio-label {
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        /* Recording select */
-        .select {
-            position: relative;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .select-input {
-            width: 100%;
-            padding: 8px 12px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            color: var(--input-text);
-            font-size: 0.9em;
-            appearance: none;
-        }
-
-        .select-arrow {
-            position: absolute;
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-
-        /* Recording textarea */
-        .textarea {
-            width: 100%;
-            padding: 8px 12px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            color: var(--input-text);
-            font-size: 0.9em;
-            margin-bottom: 10px;
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        /* Recording button */
-        .button {
-            padding: 8px 16px;
-            background-color: var(--recording-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background-color 0.3s;
-        }
-
-        .button:hover {
-            background-color: #ff1a0a;
-        }
-
-        .button-secondary {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .button-secondary:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Recording icon */
-        .icon {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-        }
-
-        /* Recording badge */
-        .badge {
-            display: inline-block;
-            padding: 2px 6px;
-            background-color: var(--recording-color);
-            color: white;
-            border-radius: 10px;
-            font-size: 0.7em;
-            font-weight: bold;
-        }
-
-        /* Recording alert */
-        .alert {
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 0.9em;
-        }
-
-        .alert-success {
-            background-color: rgba(76, 175, 80, 0.2);
-            color: #4CAF50;
-        }
-
-        .alert-error {
-            background-color: rgba(244, 67, 54, 0.2);
-            color: #F44336;
-        }
-
-        .alert-warning {
-            background-color: rgba(255, 193, 7, 0.2);
-            color: #FFC107;
-        }
-
-        .alert-info {
-            background-color: rgba(33, 150, 243, 0.2);
-            color: #2196F3;
-        }
-
-        /* Recording card */
-        .card {
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .card-title {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: var(--text-color);
-        }
-
-        .card-content {
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        /* Recording list */
-        .list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .list-item {
-            padding: 8px 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        .list-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Recording table */
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-
-        .table th, .table td {
-            padding: 8px 12px;
-            text-align: right;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        .table th {
-            font-weight: bold;
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-
-        /* Recording pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            margin-top: 15px;
-        }
-
-        .page-item {
-            padding: 5px 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            cursor: pointer;
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        .page-item.active {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        /* Recording breadcrumb */
-        .breadcrumb {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 15px;
-        }
-
-        .breadcrumb-item {
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        .breadcrumb-separator {
-            color: var(--secondary-color);
-        }
-
-        /* Recording steps */
-        .steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1;
-        }
-
-        .step-number {
-            width: 30px;
-            height: 30px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--text-color);
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .step.active .step-number {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        .step-title {
-            color: var(--text-color);
-            font-size: 0.8em;
-        }
-
-        .steps-line {
-            position: absolute;
-            top: 15px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: rgba(255, 255, 255, 0.1);
-            z-index: 0;
-        }
-
-        /* Recording progress steps */
-        .progress-steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .progress-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1;
-        }
-
-        .progress-step-number {
-            width: 30px;
-            height: 30px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--text-color);
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .progress-step.active .progress-step-number {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        .progress-step.completed .progress-step-number {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .progress-step-title {
-            color: var(--text-color);
-            font-size: 0.8em;
-        }
-
-        .progress-steps-line {
-            position: absolute;
-            top: 15px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: rgba(255, 255, 255, 0.1);
-            z-index: 0;
-        }
-
-        .progress-steps-line-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background-color: var(--recording-color);
-        }
-
-        /* Recording avatar */
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--secondary-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-weight: bold;
-            overflow: hidden;
-        }
-
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Recording divider */
-        .divider {
-            height: 1px;
-            background-color: rgba(255, 255, 255, 0.1);
-            margin: 15px 0;
-        }
-
-        /* Recording empty state */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            text-align: center;
-            color: var(--secondary-color);
-        }
-
-        .empty-icon {
-            font-size: 2em;
-            margin-bottom: 15px;
-        }
-
-        .empty-title {
-            font-size: 1.2em;
-            margin-bottom: 10px;
-            color: var(--text-color);
-        }
-
-        .empty-description {
-            font-size: 0.9em;
-            margin-bottom: 15px;
-        }
-
-        /* Recording skeleton */
-        .skeleton {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-
-        .skeleton-text {
-            height: 12px;
-            margin-bottom: 8px;
-        }
-
-        .skeleton-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-        }
-
-        /* Recording tooltip */
-        .tooltip {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8em;
-            pointer-events: none;
-            z-index: 100;
-            display: none;
-        }
-
-        /* Recording popover */
-        .popover {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            border-radius: 5px;
-            padding: 10px;
-            z-index: 100;
-            display: none;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            max-width: 200px;
-        }
-
-        .popover-arrow {
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
-        }
-
-        /* Recording modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            display: none;
-        }
-
-        .modal-dialog {
-            background-color: var(--bg-color);
-            border-radius: 10px;
-            padding: 20px;
-            max-width: 80%;
-            max-height: 80%;
-            overflow-y: auto;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .modal-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: var(--text-color);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.5em;
-            cursor: pointer;
-        }
-
-        .modal-body {
-            margin-bottom: 15px;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .modal-button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .modal-primary {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        .modal-secondary {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        /* Recording carousel */
-        .carousel {
-            position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-        }
-
-        .carousel-inner {
-            display: flex;
-            transition: transform 0.5s ease;
-        }
-
-        .carousel-item {
-            min-width: 100%;
-            position: relative;
-        }
-
-        .carousel-control {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-        .carousel-control.prev {
-            left: 10px;
-        }
-
-        .carousel-control.next {
-            right: 10px;
-        }
-
-        .carousel-indicators {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 5px;
-            z-index: 10;
-        }
-
-        .carousel-indicator {
-            width: 10px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .carousel-indicator.active {
-            background-color: var(--recording-color);
-        }
-
-        /* Recording tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 15px;
-        }
-
-        .tab {
-            padding: 8px 15px;
-            cursor: pointer;
-            color: var(--text-color);
-            border-bottom: 2px solid transparent;
-        }
-
-        .tab.active {
-            border-bottom-color: var(--recording-color);
-            color: var(--recording-color);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Recording accordion */
-        .accordion {
-            border-radius: 5px;
-            overflow: hidden;
-            background-color: rgba(0, 0, 0, 0.3);
-        }
-
-        .accordion-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .accordion-header {
-            padding: 10px 15px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-color);
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-
-        .accordion-content {
-            padding: 15px;
-            display: none;
-        }
-
-        .accordion-item.active .accordion-content {
-            display: block;
-        }
-
-        /* Recording collapse */
-        .collapse {
-            border-radius: 5px;
-            overflow: hidden;
-            background-color: rgba(0, 0, 0, 0.3);
-            margin-bottom: 15px;
-        }
-
-        .collapse-header {
-            padding: 10px 15px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-color);
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-
-        .collapse-content {
-            padding: 15px;
-            display: none;
-        }
-
-        .collapse.active .collapse-content {
-            display: block;
-        }
-
-        /* Recording dropdown */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-toggle {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: rgba(0, 0, 0, 0.9);
-            border-radius: 5px;
-            padding: 5px 0;
-            z-index: 10;
-            display: none;
-            min-width: 150px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .dropdown-item {
-            padding: 8px 15px;
-            cursor: pointer;
-            color: white;
-            font-size: 0.9em;
-        }
-
-        .dropdown-item:hover {
-            background-color: var(--recording-color);
-        }
-
-        .dropdown-divider {
-            height: 1px;
-            background-color: rgba(255, 255, 255, 0.1);
-            margin: 5px 0;
-        }
-
-        /* Recording breadcrumb */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 15px;
-        }
-
-        .breadcrumb-item {
-            color: var(--text-color);
-            font-size: 0.9em;
-            display: flex;
-            align-items: center;
-        }
-
-        .breadcrumb-item.active {
-            color: var(--recording-color);
-        }
-
-        .breadcrumb-separator {
-            color: var(--secondary-color);
-            margin: 0 5px;
-        }
-
-        /* Recording pagination */
-        .pagination {
-            display: flex;
-            gap: 5px;
-            margin-top: 15px;
-        }
-
-        .page-item {
-            padding: 5px 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            cursor: pointer;
-            color: var(--text-color);
-            font-size: 0.9em;
-        }
-
-        .page-item.active {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        .page-item.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Recording steps */
-        .steps {
-            display: flex;
-            justify-content: space-between;
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1;
-        }
-
-        .step-number {
-            width: 30px;
-            height: 30px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--text-color);
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .step.active .step-number {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        .step.completed .step-number {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .step-title {
-            color: var(--text-color);
-            font-size: 0.8em;
-        }
-
-        .steps-line {
-            position: absolute;
-            top: 15px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: rgba(255, 255, 255, 0.1);
-            z-index: 0;
-        }
-
-        .steps-line-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background-color: var(--recording-color);
-        }
-
-        /* Recording progress */
-        .progress {
-            height: 5px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background-color: var(--recording-color);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        /* Recording spinner */
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--recording-color);
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Recording toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            z-index: 1000;
-            display: none;
-            animation: fadeInOut 3s ease;
-        }
-
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; }
-            10%, 90% { opacity: 1; }
-        }
-
-        /* Recording tooltip */
-        .tooltip {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8em;
-            pointer-events: none;
-            z-index: 100;
-            display: none;
-        }
-
-        .tooltip-arrow {
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
-        }
-
-        /* Recording popover */
-        .popover {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            border-radius: 5px;
-            padding: 10px;
-            z-index: 100;
-            display: none;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            max-width: 200px;
-        }
-
-        .popover-arrow {
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
-        }
-
-        /* Recording modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            display: none;
-        }
-
-        .modal-dialog {
-            background-color: var(--bg-color);
-            border-radius: 10px;
-            padding: 20px;
-            max-width: 80%;
-            max-height: 80%;
-            overflow-y: auto;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .modal-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: var(--text-color);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.5em;
-            cursor: pointer;
-        }
-
-        .modal-body {
-            margin-bottom: 15px;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .modal-button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .modal-primary {
-            background-color: var(--recording-color);
-            color: white;
-        }
-
-        .modal-secondary {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        /* Recording carousel */
-        .carousel {
-            position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-        }
-
-        .carousel-inner {
-            display: flex;
-            transition: transform 0.5s ease;
-        }
-
-        .carousel-item {
-            min-width: 100%;
-            position: relative;
-        }
-
-        .carousel-control {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-        .carousel-control.prev {
-            left: 10px;
-        }
-
-        .carousel-control.next {
-            right: 10px;
-        }
-
-        .carousel-indicators {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 5px;
-            z-index: 10;
-        }
-
-        .carousel-indicator {
-            width: 10px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .carousel-indicator.active {
-            background-color: var(--recording-color);
-        }
-
-        /* Recording tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 15px;
-        }
-
-        .tab {
-            padding: 8px 15px;
-            cursor: pointer;
-            color: var(--text-color);
-            border-bottom: 2px solid transparent;
-        }
-
-        .tab.active {
-            border-bottom-color: var(--recording-color);
-            color: var(--recording-color);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Recording accordion */
-        .accordion {
-            border-radius: 5px;
-            overflow: hidden;
-            background-color: rgba(0, 0, 0, 0.3);
-        }
-
-        .accordion-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .accordion-header {
-            padding: 10px 15px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-color);
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-
-        .accordion-content {
-            padding: 15px;
-            display: none;
-        }
-
-        .accordion-item.active .accordion-content {
-            display: block;
-        }
-
-        /* Recording collapse */
-        .collapse {
-            border-radius: 5px;
-            overflow: hidden;
-            background-color: rgba(0, 0, 0, 0.3);
-            margin-bottom: 15px;
-        }
-
-        .collapse-header {
-            padding: 10px 15px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-color);
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-
-        .collapse-content {
-            padding: 15px;
-            display: none;
-        }
-
-        .collapse.active .collapse-content {
-            display: block;
-        }
-
-        /* Recording dropdown */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-toggle {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: rgba(0, 0, 0, 0.9);
-            border-radius: 5px;
-            padding: 5px 0;
-            z-index: 10;
-            display: none;
-            min-width: 150px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .dropdown-item {
-            padding: 8px 15px;
-            cursor: pointer;
-            color: white;
-            font-size: 0.9em;
-        }
-
-        .dropdown-item:hover {
-            background-color: var(--recording-color);
-        }
-
-        .dropdown-divider {
-            height: 1px;
-            background-color: rgba(255, 255, 255, 0.1);
-            margin: 5px 0;
-        }
-
-        /* تعديلات للشاشات الصغيرة */
-        @media (max-width: 480px) {
-            #input-area {
-                padding: 8px 12px;
-                gap: 6px;
-            }
-            
-            #message-input {
-                padding: 8px 12px;
-                font-size: 0.9rem;
-                min-height: 40px;
-            }
-            
-            #image-upload-button,
-            #send-button,
-            #record-audio-button {
-                width: 40px;
-                height: 40px;
-                min-width: 40px;
-                min-height: 40px;
-            }
-            
-            #image-upload-button svg,
-            #send-button svg,
-            #record-audio-button svg {
-                width: 20px;
-                height: 20px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -3560,36 +766,18 @@
             <button id="image-upload-button" title="إرسال صورة">
                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm4.5 8a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM19 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" fill="currentColor"/></svg>
             </button>
-            <button id="record-audio-button" class="recording-button" title="تسجيل صوتي">
-                <div class="recording-wave"></div>
-                <span class="recording-time"></span>
+            <button id="record-audio-button" title="تسجيل صوتي">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" fill="currentColor"/><path d="M19 10v1a7 7 0 0 1-14 0v-1h-2v1a9 9 0 0 0 8 8.94V21h-2v2h6v-2h-2v-1.06A9 9 0 0 0 21 11v-1h-2z" fill="currentColor"/></svg>
             </button>
             <button id="send-button" title="إرسال">
                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/></svg>
             </button>
-            <button id="cancel-recording-button">إلغاء التسجيل</button>
-            <div class="swipe-indicator">اسحب لأعلى لإلغاء التسجيل</div>
-            <div class="lock-indicator">التسجيل مؤمن</div>
         </div>
 
         <div class="recording-indicator">
-            <div class="recording-indicator-content">
-                <div class="recording-visualizer">
-                    <div class="visualizer-bar"></div>
-                    <div class="visualizer-bar"></div>
-                    <div class="visualizer-bar"></div>
-                    <div class="visualizer-bar"></div>
-                    <div class="visualizer-bar"></div>
-                </div>
-                <span>جارٍ التسجيل...</span>
-                <span class="recording-animation"></span>
-                <span class="recording-timer">00:00</span>
-                <button id="stop-recording-button">إيقاف وإرسال</button>
-                <div class="recording-progress">
-                    <div class="recording-progress-bar"></div>
-                </div>
-            </div>
+            <span>جارٍ التسجيل...</span>
+            <span class="recording-animation"></span>
+            <button id="stop-recording-button" style="margin-top: 10px; padding: 5px 10px; background-color: red; color: white; border: none; border-radius: 5px;">إيقاف</button>
         </div>
 
         <button id="scroll-to-bottom" title="انزل للأسفل">
@@ -3607,82 +795,1298 @@
          </div>
      </div>
 
-     <div class="volume-indicator">
-         <div class="volume-level"></div>
-         <div class="volume-level"></div>
-         <div class="volume-level"></div>
-         <div class="volume-level"></div>
-         <div class="volume-level"></div>
-         <div class="volume-level"></div>
-         <div class="volume-level"></div>
-         <div class="volume-level"></div>
-     </div>
-
-     <div class="recording-error">
-         <h3>خطأ في التسجيل الصوتي</h3>
-         <p>لا يمكن الوصول إلى الميكروفون. يرجى التحقق من الأذونات وإعادة المحاولة.</p>
-         <button id="retry-recording-button">إعادة المحاولة</button>
-     </div>
-
-     <div class="limit-warning">
-         لقد وصلت إلى الحد الأقصى لمدة التسجيل (5 دقائق)
-     </div>
-
-     <div class="quality-options">
-         <div class="quality-option selected">جودة عالية</div>
-         <div class="quality-option">جودة متوسطة</div>
-         <div class="quality-option">جودة منخفضة</div>
-     </div>
-
-     <div class="format-options">
-         <div class="format-option selected">MP3</div>
-         <div class="format-option">WAV</div>
-         <div class="format-option">OGG</div>
-     </div>
-
-     <div class="help-content">
-         <button class="help-close">&times;</button>
-         <h3>مساعدة تسجيل الصوت</h3>
-         <p>1. اضغط مع الاستمرار على زر التسجيل لبدء التسجيل</p>
-         <p>2. حرر الزر لإيقاف التسجيل وإرساله</p>
-         <p>3. اسحب لأعلى أثناء التسجيل لإلغائه</p>
-         <p>4. اضغط على زر القفل لتأمين التسجيل</p>
-     </div>
-
-     <div class="tutorial-step">
-         <p>اضغط مع الاستمرار على الزر لبدء التسجيل</p>
-         <button id="got-it-button">فهمت!</button>
-     </div>
-
-     <div class="lock-screen">
-         <div class="lock-screen-icon">🔒</div>
-         <div class="lock-screen-text">التسجيل مؤمن - اضغط لإلغاء القفل</div>
-         <button class="lock-screen-button">إلغاء القفل</button>
-     </div>
-
-     <div class="recording-confirmation">
-         <h3>هل تريد إرسال هذا التسجيل؟</h3>
-         <p>مدة التسجيل: <span class="confirmation-duration">00:30</span></p>
-         <div class="confirmation-buttons">
-             <button class="confirmation-button confirm-button">إرسال</button>
-             <button class="confirmation-button cancel-button">إلغاء</button>
-         </div>
-     </div>
-
-     <div class="recording-preview">
-         <h3>معاينة التسجيل</h3>
-         <audio class="preview-audio" controls></audio>
-         <div class="preview-buttons">
-             <button class="preview-button send-button">إرسال</button>
-             <button class="preview-button retry-button">إعادة التسجيل</button>
-         </div>
-     </div>
 
     <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-storage-compat.js"></script>
      <script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-analytics-compat.js"></script>
-     
-     <script src="script1.js"></script>
-   </body>
-   </html>
+
+
+<script>
+     console.log("Chat script loaded.");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgBBp8TATR616ssonog_W00mLoMzC5X6I",
+      authDomain: "login-page-ce50f.firebaseapp.com",
+      projectId: "login-page-ce50f",
+      storageBucket: "login-page-ce50f.firebasestorage.app",
+      messagingSenderId: "274104600411",
+      appId: "1:274104600411:web:0a0248a995bea745e33c7e",
+      measurementId: "G-E1PKLWQHYB"
+    };
+    console.log("Firebase config:", firebaseConfig);
+
+    let app = null;
+    let database = null;
+    let storage = null;
+    let analytics = null;
+
+    let allowedUsersRef = null;
+    let onlineUsersRef = null;
+    let storageRef = null;
+    let groupsRef = null;
+
+    const loginContainer = document.getElementById('login-container');
+    const loginCodeInput = document.getElementById('login-code');
+    const loginNameInput = document.getElementById('login-name');
+    const loginButton = document.getElementById('login-button');
+    const loginError = document.getElementById('login-error');
+    const firebaseChatInitErrorElement = document.getElementById('firebase-chat-init-error');
+
+    const chatContainer = document.getElementById('chat-container');
+    const chatHeader = document.getElementById('chat-header');
+    const userListToggleButton = document.getElementById('user-list-toggle-button');
+    const groupSelect = document.getElementById('group-select');
+    const headerTitleSpan = document.querySelector('#chat-header .header-title');
+    const groupNameSpan = document.getElementById('group-name');
+    const currentUsernameSpan = document.getElementById('current-username');
+
+    const userList = document.getElementById('user-list');
+    const userListUl = document.querySelector('#user-list ul');
+    const messageArea = document.getElementById('message-area');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const imageUploadButton = document.getElementById('image-upload-button');
+    const imageUploadInput = document.getElementById('image-upload-input');
+    const recordAudioButton = document.getElementById('record-audio-button');
+    const stopRecordingButton = document.getElementById('stop-recording-button');
+    const recordingIndicator = document.querySelector('.recording-indicator');
+    const scrollToBottomButton = document.getElementById('scroll-to-bottom');
+
+    const imageModal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalCloseButton = document.querySelector('.modal-close');
+    const modalDownloadButton = document.querySelector('.modal-download');
+
+    let currentUser = null;
+    let currentUserId = null;
+    let currentGroupId = null;
+    let currentGroupName = null;
+    let messagesListener = null;
+
+    let isScrolling = false;
+    let isPinching = false;
+    let initialDistance = 0;
+    let initialX = 0;
+    let initialY = 0;
+    let currentScale = 1;
+
+    // Audio recording variables
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioContext = null;
+    let audioAnalyser = null;
+    let audioSource = null;
+    let audioBuffer = null;
+    let isRecording = false;
+    let audioDurationInterval = null;
+    let audioDuration = 0;
+
+    // Check for saved login credentials
+    function checkSavedCredentials() {
+        const savedCode = localStorage.getItem('savedCode');
+        const savedName = localStorage.getItem('savedName');
+        
+        if (savedCode && savedName) {
+            loginCodeInput.value = savedCode;
+            loginNameInput.value = savedName;
+            // Auto-login if credentials exist
+            setTimeout(() => {
+                loginButton.click();
+            }, 500);
+        }
+    }
+
+    function generatePersistentUserId(code, name) {
+         return `${code}_${name.toLowerCase().replace(/\s+/g, '').replace(/[.#$\[\]]/g, '_')}`;
+     }
+
+    function scrollToBottom() {
+         if(messageArea) {
+            messageArea.scrollTop = messageArea.scrollHeight;
+            messageArea.classList.remove('scrolling');
+         }
+    }
+
+    function toggleScrollButton() {
+         if(messageArea && scrollToBottomButton) {
+            if (messageArea.scrollHeight - messageArea.scrollTop > messageArea.clientHeight + 100) {
+                scrollToBottomButton.classList.add('show');
+            } else {
+                scrollToBottomButton.classList.remove('show');
+            }
+         }
+    }
+
+    function playNotificationSound() {
+         try {
+             const audio = new Audio('data:audio/wav;base64,UklGRlIAAABXQVZFZm10RBIADAAAAAEAAQIAQB8AAEAfAAABAAEAaW5mbwAAAEkAAADgfEJUUkxUBAAAAgAAAFJpcpYdHA==')
+             audio.play().catch(e => console.warn("Error playing sound:", e.message));
+         } catch (e) {
+             console.warn("Browser does not support Audio API or playback failed:", e.message);
+         }
+     }
+
+    function showLogin() {
+        if(loginContainer) loginContainer.style.display = 'block';
+        if(chatContainer) chatContainer.style.display = 'none';
+         if (window.innerWidth <= 768 && chatContainer) {
+             chatContainer.classList.remove('user-list-visible');
+             if(userList) userList.style.display = 'none';
+         }
+    }
+
+    function showChat() {
+        if(loginContainer) loginContainer.style.display = 'none';
+        if(chatContainer) chatContainer.style.display = 'grid';
+
+         if(messageArea) {
+             messageArea.addEventListener('scroll', toggleScrollButton);
+             toggleScrollButton();
+         }
+
+         if (window.innerWidth <= 768 && userList) {
+             userList.style.display = 'none';
+         }
+
+         if(window.innerWidth <= 768 && userListToggleButton) {
+             userListToggleButton.style.display = 'block';
+         } else if (userListToggleButton) {
+             userListToggleButton.style.display = 'none';
+         }
+    }
+
+    function displayImageGroup(images, senderName, senderId, messageId) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.dataset.messageId = messageId;
+
+        const isMyMessage = currentUser && senderId === currentUser.userId;
+
+        if (isMyMessage) {
+            messageElement.classList.add('my-message');
+        } else {
+            messageElement.classList.add('other-message');
+        }
+
+        const avatarElement = document.createElement('div');
+        avatarElement.classList.add('message-avatar');
+        avatarElement.textContent = senderName ? senderName.substring(0, 2).toUpperCase() : '??';
+
+        const contentElement = document.createElement('div');
+        contentElement.classList.add('message-content');
+
+        const senderElement = document.createElement('div');
+        senderElement.classList.add('message-sender');
+        senderElement.textContent = senderName || 'مستخدم غير معروف';
+        contentElement.appendChild(senderElement);
+
+        const imageGroupContainer = document.createElement('div');
+        imageGroupContainer.classList.add('image-group-container');
+
+        const imageGroup = document.createElement('div');
+        imageGroup.classList.add('image-group');
+
+        // Show first 4 images in the grid
+        const imagesToShow = images.slice(0, 4);
+        imagesToShow.forEach((imageUrl, index) => {
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.dataset.imageUrl = imageUrl;
+            img.classList.add('message-image');
+            img.onclick = function() {
+                modalImage.src = imageUrl;
+                imageModal.style.display = 'flex';
+                modalDownloadButton.dataset.imageUrl = imageUrl;
+            };
+            imageGroup.appendChild(img);
+        });
+
+        imageGroupContainer.appendChild(imageGroup);
+
+        // Show count if more than 4 images
+        if (images.length > 4) {
+            const countElement = document.createElement('div');
+            countElement.classList.add('image-group-count');
+            countElement.textContent = `+${images.length - 4}`;
+            imageGroupContainer.appendChild(countElement);
+        }
+
+        contentElement.appendChild(imageGroupContainer);
+
+        if (isMyMessage && database && currentGroupId && messageId) {
+            const messageRef = database.ref('groupMessages').child(currentGroupId).child(messageId);
+
+            const deleteButtonElement = document.createElement('button');
+            deleteButtonElement.classList.add('delete-button');
+            deleteButtonElement.textContent = 'x';
+            deleteButtonElement.title = 'حذف الرسالة';
+            deleteButtonElement.addEventListener('click', () => {
+                messageRef.remove()
+                    .then(() => console.log("Message removed successfully:", messageId))
+                    .catch(error => console.error("Error removing message:", error));
+            });
+            contentElement.appendChild(deleteButtonElement);
+        }
+
+        if (isMyMessage) {
+            messageElement.appendChild(contentElement);
+            messageElement.appendChild(avatarElement);
+        } else {
+            messageElement.appendChild(avatarElement);
+            messageElement.appendChild(contentElement);
+        }
+
+        messageArea.appendChild(messageElement);
+
+        if (isMyMessage || (messageArea.scrollHeight - messageArea.scrollTop - messageArea.clientHeight) < 200) {
+            setTimeout(scrollToBottom, 100);
+        }
+
+        if (!isMyMessage && document.visibilityState === 'visible') {
+            playNotificationSound();
+        }
+    }
+
+    function displayMessage(message) {
+        if (!messageArea) return;
+
+        // Handle image groups (new feature)
+        if (message.type === 'image-group' && message.images && message.images.length > 0) {
+            displayImageGroup(message.images, message.senderName, message.senderId, message.key);
+            return;
+        }
+
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.dataset.messageId = message.key;
+
+        const isMyMessage = currentUser && message.senderId === currentUser.userId;
+
+        if (isMyMessage) {
+            messageElement.classList.add('my-message');
+        } else {
+            messageElement.classList.add('other-message');
+        }
+
+        const avatarElement = document.createElement('div');
+        avatarElement.classList.add('message-avatar');
+        avatarElement.textContent = message.senderName ? message.senderName.substring(0, 2).toUpperCase() : '??';
+
+        const contentElement = document.createElement('div');
+        contentElement.classList.add('message-content');
+
+        const senderElement = document.createElement('div');
+        senderElement.classList.add('message-sender');
+        senderElement.textContent = message.senderName || 'مستخدم غير معروف';
+        contentElement.appendChild(senderElement);
+
+        if (message.type === 'text') {
+            const textElement = document.createElement('div');
+            textElement.classList.add('message-text');
+            textElement.textContent = message.text;
+            contentElement.appendChild(textElement);
+        } else if (message.type === 'image' && message.imageUrl) {
+            const imgElement = document.createElement('img');
+            imgElement.classList.add('message-image');
+            imgElement.src = message.imageUrl;
+            imgElement.classList.add('loading');
+            imgElement.onload = () => {
+                imgElement.classList.remove('loading');
+                if (messageArea.scrollHeight - messageArea.scrollTop - messageArea.clientHeight < 50) {
+                    scrollToBottom();
+                }
+            };
+            imgElement.onerror = () => {
+                console.error("Failed to load image:", message.imageUrl);
+                const errorText = document.createElement('div');
+                errorText.classList.add('message-text');
+                errorText.style.color = 'red';
+                errorText.textContent = 'فشل تحميل الصورة';
+                contentElement.appendChild(errorText);
+            };
+            imgElement.dataset.imageUrl = message.imageUrl;
+            contentElement.appendChild(imgElement);
+        } else if (message.type === 'audio' && message.audioUrl) {
+            const audioContainer = document.createElement('div');
+            audioContainer.classList.add('audio-message');
+            
+            const audioControls = document.createElement('div');
+            audioControls.classList.add('audio-controls');
+            
+            const playButton = document.createElement('button');
+            playButton.classList.add('play-pause-button');
+            playButton.innerHTML = '&#9658;'; 
+            
+            const progressContainer = document.createElement('div');
+            progressContainer.classList.add('audio-progress');
+            
+            const progressBar = document.createElement('div');
+            progressBar.classList.add('audio-progress-played');
+            progressContainer.appendChild(progressBar);
+            
+            const durationDisplay = document.createElement('div');
+            durationDisplay.classList.add('audio-duration');
+            durationDisplay.textContent = formatTime(message.duration || 0);
+            
+            audioControls.appendChild(playButton);
+            audioControls.appendChild(progressContainer);
+            audioControls.appendChild(durationDisplay);
+            
+            audioContainer.appendChild(audioControls);
+            contentElement.appendChild(audioContainer);
+            
+            let audioElement = null;
+            let isPlaying = false;
+            
+            playButton.addEventListener('click', () => {
+                if (!audioElement) {
+                    audioElement = new Audio(message.audioUrl);
+                    audioElement.addEventListener('timeupdate', () => {
+                        const progress = (audioElement.currentTime / audioElement.duration) * 100;
+                        progressBar.style.width = `${progress}%`;
+                        durationDisplay.textContent = formatTime(audioElement.currentTime) + ' / ' + formatTime(audioElement.duration);
+                    });
+                    audioElement.addEventListener('ended', () => {
+                        progressBar.style.width = '0%';
+                        durationDisplay.textContent = formatTime(audioElement.duration);
+                        playButton.innerHTML = '&#9658;';
+                        isPlaying = false;
+                    });
+                }
+                
+                if (isPlaying) {
+                    audioElement.pause();
+                    playButton.innerHTML = '&#9658;';
+                    isPlaying = false;
+                } else {
+                    audioElement.play();
+                    playButton.innerHTML = '&#10074;&#10074;'; 
+                    isPlaying = true;
+                }
+            });
+        }
+
+        if (isMyMessage && database && currentGroupId && message.key) {
+            const messageRef = database.ref('groupMessages').child(currentGroupId).child(message.key);
+
+            const deleteButtonElement = document.createElement('button');
+            deleteButtonElement.classList.add('delete-button');
+            deleteButtonElement.textContent = 'x';
+            deleteButtonElement.title = 'حذف الرسالة';
+            deleteButtonElement.addEventListener('click', () => {
+                messageRef.remove()
+                    .then(() => console.log("Message removed successfully:", message.key))
+                    .catch(error => console.error("Error removing message:", error));
+            });
+            contentElement.appendChild(deleteButtonElement);
+        }
+
+        if (isMyMessage) {
+            messageElement.appendChild(contentElement);
+            messageElement.appendChild(avatarElement);
+        } else {
+            messageElement.appendChild(avatarElement);
+            messageElement.appendChild(contentElement);
+        }
+
+        messageArea.appendChild(messageElement);
+
+        if (isMyMessage || (messageArea.scrollHeight - messageArea.scrollTop - messageArea.clientHeight) < 200) {
+            setTimeout(scrollToBottom, 100);
+        }
+
+        if (!isMyMessage && document.visibilityState === 'visible') {
+            playNotificationSound();
+        }
+    }
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function updateOnlineUsersList(users) {
+        if (!userListUl) return;
+        userListUl.innerHTML = '';
+        if (users) {
+            const sortedUserIds = Object.keys(users).sort((uidA, uidB) => {
+                const userA = users[uidA];
+                const userB = users[uidB];
+
+                if (!userA || !userB) return 0;
+
+                if (userA.isOnline && !userB.isOnline) return -1;
+                if (!userA.isOnline && userB.isOnline) return 1;
+
+                const nameA = userA.name || '';
+                const nameB = userB.name || '';
+                return nameA.localeCompare(nameB, 'ar');
+            });
+
+            sortedUserIds.forEach(userId => {
+                const user = users[userId];
+                if (!user || !user.name) {
+                    console.warn("Skipping invalid user entry in online list:", user);
+                    return;
+                }
+
+                const li = document.createElement('li');
+
+                const statusSpan = document.createElement('span');
+                statusSpan.classList.add(user.isOnline ? 'online-status' : 'offline-status');
+                statusSpan.title = user.isOnline ? 'متصل' : 'غير متصل';
+
+                li.appendChild(statusSpan);
+                li.appendChild(document.createTextNode(user.name));
+
+                if (!user.isOnline && user.lastSeen) {
+                    const lastSeenSpan = document.createElement('span');
+                    lastSeenSpan.classList.add('last-seen');
+                    const lastSeenTime = new Date(user.lastSeen);
+                    try {
+                        lastSeenSpan.textContent = ` (آخر ظهور: ${lastSeenTime.toLocaleDateString('ar-EG')} ${lastSeenTime.toLocaleTimeString('ar-EG')})`;
+                    } catch (e) {
+                        console.error("Error formatting last seen date:", user.lastSeen, e);
+                        lastSeenSpan.textContent = ` (آخر ظهور: غير معروف)`;
+                    }
+                    li.appendChild(lastSeenSpan);
+                }
+
+                userListUl.appendChild(li);
+            });
+        }
+    }
+
+    function updateChatHeaderTitle(groupName, userName) {
+        if(groupNameSpan) {
+            groupNameSpan.textContent = groupName || 'المجموعة غير محددة';
+        }
+        if(currentUsernameSpan) {
+            currentUsernameSpan.textContent = userName ? `أنت: ${userName}` : '';
+        }
+    }
+
+    function populateGroupSelect(groups) {
+        if (!groupSelect) return;
+        const previouslySelectedGroupId = groupSelect.value;
+        groupSelect.innerHTML = '';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'اختر مجموعة...';
+        defaultOption.disabled = true;
+        groupSelect.appendChild(defaultOption);
+
+        let restoredSelection = false;
+        if (groups) {
+            Object.keys(groups).forEach(groupId => {
+                const group = groups[groupId];
+                if (group && group.name) {
+                    const option = document.createElement('option');
+                    option.value = groupId;
+                    option.textContent = group.name;
+                    if (groupId === previouslySelectedGroupId) {
+                        option.selected = true;
+                        restoredSelection = true;
+                    }
+                    groupSelect.appendChild(option);
+                }
+            });
+        }
+        if (!restoredSelection) {
+            defaultOption.selected = true;
+        }
+    }
+
+    function selectGroup(groupId, groupName) {
+        console.log(`Attempting to select group: ${groupId} (${groupName})`);
+
+        if (!database) {
+            console.error("Firebase Database not initialized.");
+            return;
+        }
+
+        if (messagesListener && currentGroupId && currentGroupId !== groupId) {
+            console.log(`Detaching message listener for old group: ${currentGroupId}`);
+            database.ref('groupMessages').child(currentGroupId).off('child_added', messagesListener);
+            messagesListener = null;
+        } else if (currentGroupId === groupId && messagesListener) {
+            console.log("Group already selected and listener active:", groupId);
+            if(currentUser) updateChatHeaderTitle(groupName, currentUser.name); else updateChatHeaderTitle(groupName, '');
+            return;
+        }
+
+        if(messageArea) messageArea.innerHTML = '';
+        console.log("Cleared message area for new group.");
+
+        currentGroupId = groupId;
+        currentGroupName = groupName;
+        console.log(`Current group state updated: ${currentGroupId} (${currentGroupName})`);
+
+        if(currentUser) {
+            updateChatHeaderTitle(currentGroupName, currentUser.name);
+        } else {
+            updateChatHeaderTitle(currentGroupName, '');
+        }
+
+        if (currentGroupId) {
+            console.log(`Attaching message listener for group: ${currentGroupId}`);
+            const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
+
+            messagesListener = groupMessagesRef.orderByChild('timestamp').on('child_added', snapshot => {
+                const message = snapshot.val();
+                message.key = snapshot.key;
+                console.log("New message received (group listener):", message);
+                displayMessage(message);
+            }, error => {
+                console.error(`Error listening to messages for group ${currentGroupId}:`, error);
+            });
+
+            setTimeout(scrollToBottom, 500);
+
+            if(messageInput) messageInput.disabled = false;
+            if(sendButton) sendButton.disabled = false;
+            if(imageUploadButton) imageUploadButton.disabled = false;
+            if(recordAudioButton) recordAudioButton.disabled = false;
+        } else {
+            console.log("No group selected, message listener not attached.");
+            if(messageInput) messageInput.disabled = true;
+            if(sendButton) sendButton.disabled = true;
+            if(imageUploadButton) imageUploadButton.disabled = true;
+            if(recordAudioButton) recordAudioButton.disabled = true;
+        }
+    }
+
+    function startRecording() {
+        if (isRecording) return;
+        
+        audioChunks = [];
+        audioDuration = 0;
+        isRecording = true;
+        if(recordingIndicator) recordingIndicator.style.display = 'block';
+        if(recordAudioButton) recordAudioButton.classList.add('recording');
+
+        audioDurationInterval = setInterval(() => {
+            audioDuration++;
+            const indicatorText = document.querySelector('.recording-indicator span');
+            if(indicatorText) indicatorText.textContent = `جارٍ التسجيل... (${formatTime(audioDuration)})`;
+        }, 1000);
+        
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    sendAudioMessage(audioBlob);
+                };
+            })
+            .catch(error => {
+                console.error("Error accessing microphone:", error);
+                alert("لا يمكن الوصول إلى الميكروفون. يرجى التحقق من الأذونات.");
+                stopRecording();
+            });
+    }
+    
+    function stopRecording() {
+        if (!isRecording && (!recordAudioButton || !recordAudioButton.classList.contains('recording'))) return;
+        
+        isRecording = false;
+        if(recordingIndicator) recordingIndicator.style.display = 'none';
+        if(recordAudioButton) recordAudioButton.classList.remove('recording');
+        clearInterval(audioDurationInterval);
+        
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            if (mediaRecorder.stream) {
+                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+        }
+    }
+    
+    function sendAudioMessage(audioBlob) {
+        if (!currentUser || !currentUser.userId) {
+            console.error("Cannot send audio: User not logged in or user ID is missing.");
+            alert("خطأ: يجب تسجيل الدخول أولاً لإرسال الرسائل الصوتية.");
+            return;
+        }
+        if (!currentGroupId) {
+            console.error("Cannot send audio: No group selected.");
+            alert("خطأ: يرجى اختيار مجموعة أولاً لإرسال الرسائل الصوتية.");
+            return;
+        }
+        if (!storageRef) {
+             console.error("Cannot send audio: Firebase Storage reference (storageRef) is not initialized.");
+             alert("خطأ في تهيئة نظام تخزين الملفات. يرجى المحاولة لاحقاً.");
+             return;
+        }
+        
+        const fileName = `${Date.now()}_${currentUser.userId}.wav`;
+        // Assuming storageRef is 'chat_images', audio messages go to a subfolder
+        const audioStorageBasePath = storage.ref('audio_messages'); // Create a new ref for audio if different
+        const audioFileRef = audioStorageBasePath.child(`${currentUser.userId}/${fileName}`);
+        
+        console.log("Starting audio upload to:", audioFileRef.fullPath);
+        const uploadTask = audioFileRef.put(audioBlob);
+        
+        uploadTask.on('state_changed',
+            snapshot => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log('Audio upload progress:', progress.toFixed(2) + '%');
+            },
+            error => {
+                console.error("Audio upload failed:", error.code, error.message, error);
+                alert(`فشل تحميل الرسالة الصوتية. الخطأ: ${error.message}`);
+            },
+            () => {
+                console.log("Audio upload complete. Getting download URL...");
+                uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
+                    const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
+                    const newMessage = {
+                        type: 'audio',
+                        senderName: currentUser.name,
+                        senderId: currentUser.userId,
+                        audioUrl: downloadURL,
+                        duration: audioDuration,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    };
+                    
+                    groupMessagesRef.push(newMessage)
+                        .then(() => {
+                            console.log("Audio message sent successfully.");
+                        })
+                        .catch(dbError => {
+                            console.error("Error sending audio message to database:", dbError);
+                            alert("حدث خطأ أثناء إرسال بيانات الرسالة الصوتية.");
+                        });
+                }).catch(urlError => {
+                    console.error("Error getting download URL for audio:", urlError);
+                    alert("حدث خطأ أثناء الحصول على رابط الرسالة الصوتية بعد الرفع.");
+                });
+            }
+        );
+    }
+
+    try {
+        app = firebase.initializeApp(firebaseConfig);
+        database = app.database();
+        storage = app.storage();
+        analytics = firebase.analytics();
+
+        allowedUsersRef = database.ref('allowedUsers');
+        onlineUsersRef = database.ref('onlineUsers');
+        groupsRef = database.ref('groups');
+        storageRef = storage.ref('chat_images'); // Base path for chat images
+
+        console.log("Firebase chat initialized successfully. References ready.");
+
+        checkSavedCredentials();
+
+        if(groupsRef && groupSelect) {
+            groupsRef.on('value', snapshot => {
+                const groupsData = snapshot.val();
+                console.log("Groups list received/updated:", groupsData);
+                populateGroupSelect(groupsData);
+
+                if (currentGroupId && groupsData && groupsData[currentGroupId] && groupsData[currentGroupId].name !== currentGroupName) {
+                    currentGroupName = groupsData[currentGroupId].name;
+                    if (currentUser) {
+                        updateChatHeaderTitle(currentGroupName, currentUser.name);
+                    } else {
+                        updateChatHeaderTitle(currentGroupName, '');
+                    }
+                }
+                else if (!currentGroupId && currentUser && groupsData && Object.keys(groupsData).length > 0) {
+                    const firstGroupId = Object.keys(groupsData)[0];
+                    if (firstGroupId && groupSelect.querySelector(`option[value="${firstGroupId}"]`)) {
+                        groupSelect.value = firstGroupId;
+                        selectGroup(firstGroupId, groupsData[firstGroupId].name || firstGroupId);
+                    }
+                } else if ((!groupsData || Object.keys(groupsData).length === 0) && currentUser) {
+                    console.warn("No groups available in Firebase.");
+                    updateChatHeaderTitle("لا توجد مجموعات", currentUser.name);
+                    if(messageInput) messageInput.disabled = true;
+                    if(sendButton) sendButton.disabled = true;
+                    if(imageUploadButton) imageUploadButton.disabled = true;
+                    if(recordAudioButton) recordAudioButton.disabled = true;
+                }
+            }, error => {
+                console.error("Error listening to groups list:", error);
+                updateChatHeaderTitle("خطأ في المجموعات", currentUser ? currentUser.name : '');
+                if(messageInput) messageInput.disabled = true;
+                if(sendButton) sendButton.disabled = true;
+                if(imageUploadButton) imageUploadButton.disabled = true;
+                if(recordAudioButton) recordAudioButton.disabled = true;
+            });
+            console.log("Groups list listener attached.");
+        } else {
+            console.error("Groups select element or Firebase refs not found. Group feature disabled.");
+            updateChatHeaderTitle("خطأ في تهيئة المجموعات", currentUser ? currentUser.name : '');
+            if(messageInput) messageInput.disabled = true;
+            if(sendButton) sendButton.disabled = true;
+            if(imageUploadButton) imageUploadButton.disabled = true;
+            if(recordAudioButton) recordAudioButton.disabled = true;
+        }
+
+        if(onlineUsersRef && userListUl) {
+            onlineUsersRef.on('value', snapshot => {
+                const onlineUsersData = snapshot.val();
+                console.log("Online users data received (global listener):", onlineUsersData);
+                updateOnlineUsersList(onlineUsersData);
+            }, error => {
+                console.error("Error listening to online users:", error);
+            });
+            console.log("Online users listener attached.");
+        } else {
+            console.error("Online users list element or Firebase refs not found. Online user list disabled.");
+        }
+    } catch (error) {
+        console.error("Firebase chat initialization failed:", error);
+        if(firebaseChatInitErrorElement) {
+            firebaseChatInitErrorElement.textContent = 'فشل تهيئة Firebase للدردشة. يرجى التحقق من إعداداتك واتصالك بالإنترنت. الخطأ: ' + error.message;
+        } else {
+            if(loginError) loginError.textContent = 'فشل تهيئة Firebase. يرجى التحقق من إعداداتك واتصالك بالإنترنت.';
+            else alert('فشل تهيئة Firebase. يرجى التحقق من إعداداتك واتصالك بالإنترنت.');
+        }
+
+        if(loginButton) loginButton.disabled = true;
+        if(loginCodeInput) loginCodeInput.disabled = true;
+        if(loginNameInput) loginNameInput.disabled = true;
+        if(messageInput) messageInput.disabled = true;
+        if(sendButton) sendButton.disabled = true;
+        if(imageUploadButton) imageUploadButton.disabled = true;
+        if(recordAudioButton) recordAudioButton.disabled = true;
+        if(groupSelect) groupSelect.disabled = true;
+    }
+
+    if (loginButton && loginCodeInput && loginNameInput && database) {
+        loginButton.addEventListener('click', () => {
+            const code = loginCodeInput.value.trim();
+            const name = loginNameInput.value.trim();
+            if(loginError) loginError.textContent = '';
+
+            if (!code || !name) {
+                if(loginError) loginError.textContent = 'الرجاء إدخال الكود والاسم.';
+                return;
+            }
+
+            console.log(`Login attempt with code: ${code}, name: ${name}`);
+
+            if (!allowedUsersRef || !onlineUsersRef) {
+                if(loginError) loginError.textContent = 'نظام التحقق أو الحضور غير جاهز. حاول مرة أخرى.';
+                console.error("Firebase refs (allowedUsersRef or onlineUsersRef) not initialized.");
+                return;
+            }
+
+            allowedUsersRef.child(code).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    const storedUserData = snapshot.val();
+                    const expectedName = storedUserData.name;
+
+                    if (expectedName && name.toLowerCase() === expectedName.toLowerCase()) {
+                        console.log("Login code and name are valid.");
+                        currentUserId = generatePersistentUserId(code, name);
+                        currentUser = { code: code, name: name, userId: currentUserId };
+
+                        localStorage.setItem('savedCode', code);
+                        localStorage.setItem('savedName', name);
+
+                        const userStatusRef = onlineUsersRef.child(currentUserId);
+                        const userDataOnline = {
+                            name: currentUser.name,
+                            isOnline: true,
+                            lastSeen: firebase.database.ServerValue.TIMESTAMP
+                        };
+                        const userDataOffline = {
+                            name: currentUser.name,
+                            isOnline: false,
+                            lastSeen: firebase.database.ServerValue.TIMESTAMP
+                        };
+
+                        userStatusRef.onDisconnect().set(userDataOffline)
+                            .then(() => {
+                                console.log("onDisconnect handler set for user:", currentUserId);
+                                return userStatusRef.set(userDataOnline);
+                            })
+                            .then(() => {
+                                console.log("User set as online. Showing chat.");
+                                showChat();
+                                updateChatHeaderTitle(currentGroupName, currentUser.name);
+
+                                if (!currentGroupId && groupSelect && groupSelect.options.length > 0) {
+                                    let firstSelectableOption = null;
+                                    for(let i=0; i < groupSelect.options.length; i++) {
+                                        if (!groupSelect.options[i].disabled && groupSelect.options[i].value) {
+                                            firstSelectableOption = groupSelect.options[i];
+                                            break;
+                                        }
+                                    }
+
+                                    if (firstSelectableOption) {
+                                        groupSelect.value = firstSelectableOption.value;
+                                        console.log(`Auto-selecting group: ${firstSelectableOption.value} - ${firstSelectableOption.text}`);
+                                        selectGroup(firstSelectableOption.value, firstSelectableOption.text);
+                                    } else {
+                                        console.warn("No selectable group found to auto-select.");
+                                        if(messageInput) messageInput.disabled = true;
+                                        if(sendButton) sendButton.disabled = true;
+                                        if(imageUploadButton) imageUploadButton.disabled = true;
+                                        if(recordAudioButton) recordAudioButton.disabled = true;
+                                    }
+                                } else if (currentGroupId && currentGroupName) {
+                                    selectGroup(currentGroupId, currentGroupName);
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Error setting user online or onDisconnect:", error);
+                                if(loginError) loginError.textContent = 'خطأ في تسجيل حالة الاتصال. حاول مرة أخرى.';
+                                currentUser = null; currentUserId = null;
+                            });
+
+                    } else {
+                        console.log("Login code is valid, but name is incorrect.");
+                        if(loginError) loginError.textContent = 'الاسم المدخل غير صحيح لهذا الكود.';
+                    }
+                } else {
+                    console.log("Login code is invalid.");
+                    if(loginError) loginError.textContent = 'الكود المدخل غير صحيح.';
+                }
+            }, error => {
+                console.error("Error accessing allowed users:", error);
+                if(loginError) loginError.textContent = 'خطأ في التحقق من الكود. حاول مرة أخرى.';
+            });
+        });
+        console.log("Login button event listener attached.");
+    } else {
+        console.error("Could not attach login button event listener. Crucial elements or Firebase database ref missing.");
+        if(loginContainer && loginContainer.style.display !== 'none' && loginError) {
+            loginError.textContent = "خطأ في تهيئة زر الدخول. حاول تحديث الصفحة.";
+        }
+    }
+
+    if(groupSelect) {
+        groupSelect.addEventListener('change', (event) => {
+            const selectedGroupId = event.target.value;
+            const selectedOption = event.target.options[event.target.selectedIndex];
+            const selectedGroupName = selectedOption ? selectedOption.text : null;
+            if (selectedGroupId && selectedGroupName && selectedOption && !selectedOption.disabled) {
+                selectGroup(selectedGroupId, selectedGroupName);
+            } else if (!selectedGroupId) {
+                console.warn("Default 'select group' option chosen. No action taken.");
+                if(messageInput) messageInput.disabled = true;
+                if(sendButton) sendButton.disabled = true;
+                if(imageUploadButton) imageUploadButton.disabled = true;
+                if(recordAudioButton) recordAudioButton.disabled = true;
+            }
+        });
+        console.log("Group select change listener attached.");
+    }
+
+    if(sendButton && messageInput && database) {
+        sendButton.addEventListener('click', () => {
+            console.log("Send button clicked!");
+            const text = messageInput.value.trim();
+            if (text && currentUser && currentUser.userId && currentGroupId) {
+                const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
+                const newMessage = {
+                    type: 'text',
+                    senderName: currentUser.name,
+                    senderId: currentUser.userId,
+                    text: text,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+                console.log("Sending text message:", newMessage, "to group:", currentGroupId);
+                groupMessagesRef.push(newMessage)
+                    .then(() => {
+                        console.log("Text message sent successfully.");
+                        messageInput.value = '';
+                    })
+                    .catch(error => {
+                        console.error("Error sending text message:", error);
+                    });
+            } else {
+                console.warn("Send click ignored: Text empty, user not logged in, or no group selected.");
+            }
+        });
+        console.log("Event listener attached to send button.");
+    }
+
+    if(messageInput && sendButton) {
+        messageInput.addEventListener('keypress', (event) => {
+            console.log("Key pressed in message input:", event.key);
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendButton.click();
+            }
+        });
+        console.log("Event listener attached to message input (keypress).");
+    }
+
+    if(imageUploadButton && imageUploadInput) {
+        imageUploadButton.addEventListener('click', () => {
+            console.log("Image upload button clicked.");
+            imageUploadInput.click();
+        });
+        console.log("Event listener attached to image upload button.");
+    }
+
+    if(imageUploadInput && storage && database) {
+        imageUploadInput.addEventListener('change', async (event) => {
+            console.log("Image upload input change event fired.");
+            const files = event.target.files;
+
+            if (!currentUser || !currentUser.userId) {
+                console.error("Image upload error: Current user not logged in or user ID is missing.");
+                alert("خطأ: يجب تسجيل الدخول أولاً لتحميل الصور.");
+                event.target.value = null; 
+                return;
+            }
+            if (!currentGroupId) {
+                console.error("Image upload error: No group selected.");
+                alert("خطأ: يرجى اختيار مجموعة أولاً لتحميل الصور.");
+                event.target.value = null;
+                return;
+            }
+            if (!storageRef) { 
+                console.error("Image upload error: Firebase Storage reference (storageRef) is not initialized for 'chat_images'.");
+                alert("خطأ في تهيئة نظام تخزين الملفات. يرجى المحاولة لاحقاً.");
+                event.target.value = null;
+                return;
+            }
+            if (!files || files.length === 0) {
+                console.warn("Image upload ignored: No files selected.");
+                event.target.value = null;
+                return;
+            }
+
+            const filesToUpload = Array.from(files).slice(0, 4); 
+            
+            if (filesToUpload.length === 0) {
+                 console.warn("Image upload ignored: No files to upload after slicing.");
+                 event.target.value = null;
+                 return;
+            }
+
+            if (filesToUpload.length === 1) {
+                const file = filesToUpload[0];
+                console.log("Single file selected:", file.name, "Type:", file.type, "Size:", file.size);
+                const fileName = `${Date.now()}_${currentUser.userId}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                const imageFileRef = storageRef.child(`${currentUser.userId}/${fileName}`);
+
+                console.log("Starting single image upload to:", imageFileRef.fullPath);
+                const uploadTask = imageFileRef.put(file);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log(`Upload is ${progress.toFixed(2)}% done for file: ${file.name}`);
+                    },
+                    (error) => {
+                        console.error(`Single image upload failed for file: ${file.name}`, "Error Code:", error.code, "Error Message:", error.message, "Full Error:", error);
+                        let userMessage = `فشل تحميل الصورة: ${file.name}.`;
+                        switch (error.code) {
+                            case 'storage/unauthorized':
+                                userMessage += "\nليس لديك الإذن لرفع الملفات. تحقق من تسجيل دخولك وقواعد الأمان في Firebase Storage.";
+                                break;
+                            case 'storage/canceled':
+                                userMessage += "\nتم إلغاء عملية الرفع.";
+                                break;
+                            case 'storage/object-not-found':
+                                userMessage += "\nلم يتم العثور على المسار أو الملف في الخادم. قد تكون مشكلة في قواعد الأمان أو المسار.";
+                                break;    
+                            case 'storage/unknown':
+                                userMessage += "\nحدث خطأ غير معروف. يرجى المحاولة مرة أخرى.";
+                                break;
+                            default:
+                                userMessage += `\n(الرمز: ${error.code}). يرجى المحاولة مرة أخرى أو الاتصال بالدعم.`;
+                        }
+                        alert(userMessage);
+                    },
+                    () => {
+                        console.log(`Image upload complete for file: ${file.name}. Getting download URL...`);
+                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            console.log('File available at', downloadURL);
+                            const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
+                            const newMessage = {
+                                type: 'image',
+                                senderName: currentUser.name,
+                                senderId: currentUser.userId,
+                                imageUrl: downloadURL,
+                                fileName: file.name, 
+                                timestamp: firebase.database.ServerValue.TIMESTAMP
+                            };
+                            groupMessagesRef.push(newMessage)
+                                .then(() => {
+                                    console.log(`Image message sent successfully for file: ${file.name}`);
+                                })
+                                .catch(dbError => {
+                                    console.error(`Error sending image message to database for file: ${file.name}`, dbError);
+                                    alert(`حدث خطأ أثناء إرسال رابط الصورة إلى قاعدة البيانات: ${file.name}.`);
+                                });
+                        }).catch(urlError => {
+                            console.error(`Error getting download URL for file: ${file.name}`, urlError);
+                            alert(`حدث خطأ أثناء الحصول على رابط الصورة بعد الرفع: ${file.name}. تأكد من أن قواعد Storage تسمح بالقراءة.`);
+                        });
+                    }
+                );
+            } else if (filesToUpload.length > 1) {
+                console.log(`Starting upload for ${filesToUpload.length} files.`);
+                const uploadPromises = filesToUpload.map(file => {
+                    console.log("Processing file for multi-upload:", file.name, "Type:", file.type, "Size:", file.size);
+                    const fileName = `${Date.now()}_${currentUser.userId}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                    const imageFileRef = storageRef.child(`${currentUser.userId}/${fileName}`);
+
+                    return imageFileRef.put(file)
+                        .then(snapshot => {
+                            console.log(`File ${file.name} uploaded. Getting URL.`);
+                            return snapshot.ref.getDownloadURL();
+                        })
+                        .then(downloadURL => {
+                            console.log(`Download URL for ${file.name}: ${downloadURL}`);
+                            return { url: downloadURL, name: file.name };
+                        })
+                        .catch(error => {
+                            console.error(`Failed to upload or get URL for ${file.name}:`, error.code, error.message, error);
+                            throw {fileName: file.name, error: error}; 
+                        });
+                });
+
+                Promise.all(uploadPromises)
+                    .then(results => {
+                        const imageUrls = results.map(r => r.url);
+                        console.log("All images for group uploaded successfully. URLs:", imageUrls);
+                        const groupMessagesRef = database.ref('groupMessages').child(currentGroupId);
+                        const newMessage = {
+                            type: 'image-group',
+                            senderName: currentUser.name,
+                            senderId: currentUser.userId,
+                            images: imageUrls,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        };
+                        groupMessagesRef.push(newMessage)
+                            .then(() => {
+                                console.log("Image group message sent successfully.");
+                            })
+                            .catch(dbError => {
+                                console.error("Error sending image group message to database:", dbError);
+                                alert("حدث خطأ أثناء إرسال مجموعة روابط الصور إلى قاعدة البيانات.");
+                            });
+                    })
+                    .catch(errorInfo => { 
+                        console.error("Error uploading one or more images in the group:", errorInfo.error, "File:", errorInfo.fileName);
+                        let userMessage = `فشل تحميل ملف واحد أو أكثر من المجموعة (${errorInfo.fileName}).`;
+                        switch (errorInfo.error.code) {
+                            case 'storage/unauthorized':
+                                userMessage += "\nليس لديك الإذن لرفع الملفات. تحقق من تسجيل دخولك وقواعد الأمان.";
+                                break;
+                            case 'storage/canceled':
+                                userMessage += "\nتم إلغاء عملية الرفع لأحد الملفات.";
+                                break;
+                            case 'storage/object-not-found':
+                                userMessage += "\nلم يتم العثور على المسار أو الملف في الخادم. قد تكون مشكلة في قواعد الأمان أو المسار.";
+                                break;
+                            case 'storage/unknown':
+                                userMessage += "\nحدث خطأ غير معروف أثناء رفع أحد الملفات.";
+                                break;
+                            default:
+                                userMessage += `\n(الرمز: ${errorInfo.error.code}). يرجى المحاولة مرة أخرى.`;
+                        }
+                        alert(userMessage);
+                    });
+            }
+            event.target.value = null; 
+        });
+        console.log("Event listener attached to image upload input with enhanced error handling and checks.");
+    }
+
+
+    if (recordAudioButton) {
+        recordAudioButton.addEventListener('click', () => {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        });
+    }
+    
+    if (stopRecordingButton) {
+        stopRecordingButton.addEventListener('click', stopRecording);
+    }
+
+    if(scrollToBottomButton) {
+        scrollToBottomButton.addEventListener('click', () => {
+            console.log("Scroll to bottom button clicked.");
+            scrollToBottom();
+        });
+        console.log("Event listener attached to scroll to bottom button.");
+    }
+
+    if(messageArea && imageModal && modalCloseButton && modalDownloadButton && modalImage) {
+        messageArea.addEventListener('click', (event) => {
+            console.log("Message area clicked.", event.target);
+            if (event.target.classList.contains('message-image')) {
+                console.log("Clicked element is a message image.");
+                const imageUrl = event.target.dataset.imageUrl;
+                if (imageUrl) {
+                    console.log("Showing image modal for URL:", imageUrl);
+                    modalImage.src = imageUrl;
+                    imageModal.style.display = 'flex';
+                    modalDownloadButton.dataset.imageUrl = imageUrl;
+                }
+            }
+        });
+        console.log("Event listener attached to message area for image clicks.");
+
+        modalCloseButton.addEventListener('click', () => {
+            console.log("Modal close button clicked.");
+            imageModal.style.display = 'none';
+            modalImage.src = '';
+            modalImage.style.transform = 'scale(1)';
+            modalImage.style.left = '0px';
+            modalImage.style.top = '0px';
+            isPinching = false;
+            initialX = initialY = initialDistance = 0;
+            currentScale = 1;
+        });
+        console.log("Event listener attached to modal close button.");
+
+        imageModal.addEventListener('click', (event) => {
+            console.log("Image modal background clicked.", event.target);
+            if (event.target === imageModal) {
+                console.log("Clicked on modal background, closing modal.");
+                modalCloseButton.click();
+            }
+        });
+        console.log("Event listener attached to modal background for closing.");
+
+        modalDownloadButton.addEventListener('click', () => {
+            console.log("Modal download button clicked.");
+            const imageUrl = modalDownloadButton.dataset.imageUrl;
+            if (imageUrl) {
+                console.log("Attempting to download image from URL:", imageUrl);
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = 'chat_image_' + new Date().getTime();
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log("Download link created and clicked.");
+            } else {
+                console.warn("Download button clicked but no image URL found.");
+            }
+        });
+        console.log("Event listener attached to modal download button.");
+
+        console.log("Touch event listeners for image modal attached.");
+        modalImage.addEventListener('touchstart', (event) => {
+            if (event.touches.length === 2) {
+                isPinching = true;
+                initialDistance = Math.hypot(event.touches[1].clientX - event.touches[0].clientX, event.touches[1].clientY - event.touches[0].clientY);
+                currentScale = parseFloat(modalImage.style.transform.replace('scale(', '').replace(')', '')) || 1;
+                event.preventDefault();
+            } else if (event.touches.length === 1 && currentScale > 1) {
+                initialX = event.touches[0].clientX - (parseFloat(modalImage.style.left) || 0);
+                initialY = event.touches[0].clientY - (parseFloat(modalImage.style.top) || 0);
+                modalImage.classList.add('dragging');
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        modalImage.addEventListener('touchmove', (event) => {
+            if (isPinching && event.touches.length === 2) {
+                event.preventDefault();
+                const currentDistance = Math.hypot(event.touches[1].clientX - event.touches[0].clientX, event.touches[1].clientY - event.touches[0].clientY);
+                const scale = currentScale * (currentDistance / initialDistance);
+                modalImage.style.transform = `scale(${Math.min(Math.max(scale, 0.5), 4)})`;
+            } else if (event.touches.length === 1 && modalImage.classList.contains('dragging')) {
+                event.preventDefault();
+                const newX = event.touches[0].clientX - initialX;
+                const newY = event.touches[0].clientY - initialY;
+                modalImage.style.left = `${newX}px`;
+                modalImage.style.top = `${newY}px`;
+            }
+        }, { passive: false });
+
+        modalImage.addEventListener('touchend', (event) => {
+            if (event.touches.length < 2) isPinching = false;
+            if (event.touches.length < 1) modalImage.classList.remove('dragging');
+        });
+    } else {
+        console.error("Critical image modal elements not found. Image preview/download will not work.");
+    }
+
+    if (userListToggleButton && chatContainer && userList) {
+        userListToggleButton.addEventListener('click', () => {
+            console.log("User list toggle button clicked.");
+            const isVisible = chatContainer.classList.toggle('user-list-visible');
+            userList.style.display = isVisible ? 'block' : 'none';
+        });
+        console.log("Event listener attached to user list toggle button.");
+
+        if (window.innerWidth <= 768) {
+            document.addEventListener('click', (event) => {
+                if (window.innerWidth <= 768) {
+                    const isClickInsideUserList = userList && userList.contains(event.target);
+                    const isClickOnToggleButton = userListToggleButton && userListToggleButton.contains(event.target);
+                    const isListVisible = chatContainer && chatContainer.classList.contains('user-list-visible');
+
+                    if (isListVisible && !isClickInsideUserList && !isClickOnToggleButton) {
+                        console.log("Clicked outside user list/toggle button on mobile, closing.");
+                        userListToggleButton.click();
+                    }
+                }
+            });
+            console.log("Global click listener attached for closing user list on mobile.");
+        }
+    } else {
+        console.error("User list toggle button or chat/user list containers not found.");
+    }
+
+    if(loginContainer && chatContainer) {
+        showLogin();
+        console.log("Showing login screen.");
+    } else {
+        console.error("Login or chat containers not found. Cannot show initial screen.");
+    }
+
+    window.addEventListener('resize', () => {
+        console.log("Window resized. Checking layout...");
+        const isSmallScreen = window.innerWidth <= 768;
+        if(userListToggleButton) userListToggleButton.style.display = isSmallScreen ? 'block' : 'none';
+
+        if (isSmallScreen) {
+            if (userList) {
+                if (!chatContainer || !chatContainer.classList.contains('user-list-visible')) {
+                    userList.style.display = 'none';
+                } else {
+                    userList.style.display = 'block';
+                }
+            }
+        } else {
+            if(userList) userList.style.display = 'block';
+            if(chatContainer) chatContainer.classList.remove('user-list-visible');
+        }
+    });
+    window.dispatchEvent(new Event('resize'));
+    console.log("Resize listener attached and triggered.");
+
+    window.addEventListener('beforeunload', () => {
+        console.log("Window beforeunload event triggered.");
+        if (currentUser && currentUserId && onlineUsersRef && database.app.options) {
+            // Cleanup if needed
+        }
+    });
+    console.log("Chat script fully executed.");
+
+</script>
+
+</body>
+</html>
